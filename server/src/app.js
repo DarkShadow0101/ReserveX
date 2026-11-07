@@ -29,7 +29,7 @@ app.use(helmet());
 // CORS configures allowed cross-origin requests (e.g. from Vite frontend on port 5173)
 app.use(
   cors({
-    origin: env.CORS_ORIGIN,
+    origin: env.CLIENT_URL,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
