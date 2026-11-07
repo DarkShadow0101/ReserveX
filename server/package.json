@@ -5,7 +5,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch --env-file=.env src/server.js",
+    "dev": "nodemon src/server.js",
     "test": "jest --runInBand --detectOpenHandles --forceExit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "jest": "^30.5.2",
+    "nodemon": "^3.1.14",
     "supertest": "^7.3.2"
   }
 }
