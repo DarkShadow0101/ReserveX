@@ -11,9 +11,10 @@ booking and payment-recovery workflows. Backend first, frontend later.
 
 ## Confirmed decisions
 
-- Plain JavaScript, Node/Express, PostgreSQL, Prisma + raw SQL, React + Vite,
+- Plain JavaScript, Node/Express, MongoDB Atlas, Mongoose, React + Vite,
   JWT + RBAC, Razorpay test mode, Jest + Supertest.
 - General-admission tickets first (capacity counters). No seat maps yet.
+- Concurrency-safe booking using MongoDB atomic operations ($inc with conditional query).
 - No Redis, queues, AI, WebSockets or TypeScript for now.
 - Development order: backend -> database -> API testing -> frontend ->
   integration -> deployment.

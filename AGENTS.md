@@ -20,9 +20,8 @@ can fully explain in interviews. Understanding matters more than speed.
 
 - Language: plain JavaScript. NO TypeScript.
 - Backend: Node.js + Express (REST API).
-- Database: PostgreSQL (Docker Compose for local development).
-- ORM: Prisma for ordinary CRUD. Raw SQL inside transactions for
-  booking-critical logic.
+- Database: MongoDB Atlas.
+- ODM: Mongoose (atomic operations and transactions for booking-critical logic).
 - Auth: JWT + bcrypt, role-based access control.
 - Validation: Zod.
 - Testing: Jest + Supertest. API checks with Postman.

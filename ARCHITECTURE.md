@@ -30,8 +30,8 @@ project is the engineering reliability, not a claim of market novelty.
 |---|---|
 | Language | Plain JavaScript (no TypeScript) |
 | Backend | Node.js + Express |
-| Database | PostgreSQL (Docker Compose locally) |
-| Data access | Prisma for CRUD; raw SQL in transactions for booking logic |
+| Database | MongoDB Atlas |
+| Data access | Mongoose (atomic conditional updates & transactions) |
 | Auth | JWT + bcrypt, RBAC |
 | Validation | Zod |
 | Payments | Razorpay (test mode) |
