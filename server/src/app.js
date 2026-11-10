@@ -3,9 +3,11 @@ const cors = require('cors');
 const helmet = require('helmet');
 const healthRoutes = require('./routes/health.routes');
 const authRoutes = require('./routes/auth.routes');
-
 const app = express();
+const cookieParser = require('cookie-parser');
 
+
+app.use(cookieParser());
 // Security HTTP headers
 app.use(helmet());
 
@@ -22,8 +24,7 @@ app.get('/', (req, res) => {
 
 // Health check route
 app.use('/health', healthRoutes);
+app.use('/api/auth',authRoutes);
 
-// Authentication routes
-app.use('/api/auth', authRoutes);
 
 module.exports = app;

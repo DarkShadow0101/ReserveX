@@ -1,42 +1,37 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/user.model');
+const userModel = require('../models/user.model');
 
 async function authMiddleware(req, res, next) {
-  try {
-    const authHeader = req.headers.authorization;
+    try {
+        let token;
 
-    // Check if token header exists and starts with 'Bearer '
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        message: 'Access denied. No token provided (Format: Bearer <token>)'
-      });
+        // 1. Check if token is in the Authorization header
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+            token = req.headers.authorization.split(' ')[1];
+        }
+        // 2. OR check if token is in Cookies (just like your Spotify project!)
+        else if (req.cookies && req.cookies.token) {
+            token = req.cookies.token;
+        }
+
+        // If no token was found in either place:
+        if (!token) {
+            return res.status(401).json({ message: "Unauthorized: No token provided" });
+        }
+        // 3. Verify the token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        // 4. Fetch the real user from MongoDB (excluding password)
+        const user = await userModel.findById(decoded.UserId).select('-password');
+        if (!user) {
+            return res.status(401).json({ message: "User belonging to this token no longer exists" });
+        }
+        // 5. Attach the real MongoDB user to req.user!
+        req.user = user;
+        next();
+    } catch (err) {
+        console.error(err);
+        return res.status(401).json({ message: "Unauthorized: Invalid or expired token" });
     }
-
-    const token = authHeader.split(' ')[1];
-
-    // Verify token with secret
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Fetch user from DB (excluding password)
-    const user = await User.findById(decoded.userId).select('-password');
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid token: User no longer exists'
-      });
-    }
-
-    // Attach user to request
-    req.user = user;
-    next();
-  } catch (error) {
-    console.error('Auth middleware error:', error.message);
-    return res.status(401).json({
-      success: false,
-      message: 'Invalid or expired token'
-    });
-  }
 }
 
 module.exports = authMiddleware;

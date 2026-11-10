@@ -1,147 +1,76 @@
-const User = require('../models/user.model');
-const bcrypt = require('bcrypt');
+const userModel = require('../models/user.model');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
-// POST /api/auth/register
-async function register(req, res) {
-  try {
+async function RegisterUser(req, res) {
+    //default value is customer
+    const { fullName, email, password, role } = req.body;
+
+    const isUserAlreadyExists = await userModel.findOne({
+        $or: [
+            { fullName },
+            { email }
+        ]
+    })
+    if (isUserAlreadyExists) {
+        return res.status(409).json({ message: "User Already Exists" })
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+
+    const user = await userModel.create({
+        fullName, email, password: hash, role
+    })
+
+    const token = jwt.sign({
+        UserId: user._id,
+        role: user.role,
+    }, process.env.JWT_SECRET)
+
+    res.cookie("token", token)
+
+    res.status(201).json({
+        message: "User Registered Successfully",
+        user
+    })
+}
+
+async function loginUser(req, res) {
     const { fullName, email, password } = req.body;
 
-    if (!fullName || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'fullName, email, and password are all required'
-      });
-    }
+    const user = await userModel.findOne({
+        email
+    })
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        message: 'User already exists with this email'
-      });
-    }
-
-    // Hash the password with bcrypt (10 rounds)
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Save user to MongoDB
-    const user = await User.create({
-      fullName,
-      email,
-      password: hashedPassword
-    });
-
-    // Sign JWT token
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
-
-    return res.status(201).json({
-      success: true,
-      message: 'User registered successfully',
-      data: {
-        user: {
-          id: user._id,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role
-        },
-        token
-      }
-    });
-  } catch (error) {
-    console.error('Register error:', error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Server error during registration'
-    });
-  }
+if (!user) {
+    return res.status(401).json({ message: "Invalid Credentials" })
 }
 
-// POST /api/auth/login
-async function login(req, res) {
-  try {
-    const { email, password } = req.body;
+const isPasswordValid = await bcrypt.compare(password, user.password)
 
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'email and password are required'
-      });
-    }
-
-    // Find user by email
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    // Compare plain password with hashed password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    // Sign JWT token
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: 'Login successful',
-      data: {
-        user: {
-          id: user._id,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role
-        },
-        token
-      }
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Server error during login'
-    });
-  }
+if (!isPasswordValid) {
+    return res.status(401).json({ message: "Invalid Credentials" })
 }
 
-// GET /api/auth/me (Protected route)
+const token = jwt.sign({
+    UserId: user._id,
+    role: user.role,
+}, process.env.JWT_SECRET)
+
+res.cookie("token", token)
+
+res.status(201).json({
+    message: "User Logged in  Succesfsfully",
+    user
+})
+}
+
 async function getMe(req, res) {
-  try {
-    // req.user is attached by the auth middleware
-    return res.status(200).json({
-      success: true,
-      data: {
+    // req.user was already fetched and verified by authMiddleware!
+    res.status(200).json({
+        success: true,
         user: req.user
-      }
     });
-  } catch (error) {
-    console.error('getMe error:', error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Server error fetching user profile'
-    });
-  }
 }
 
-module.exports = {
-  register,
-  login,
-  getMe
-};
+module.exports = { RegisterUser, loginUser, getMe };
