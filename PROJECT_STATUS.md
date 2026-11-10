@@ -1,103 +1,91 @@
 # PROJECT_STATUS.md — ReserveX
 
-Last updated: 2026-11-08
+Last updated: 2026-11-11
 
 ## Summary
 
-ReserveX: an event ticketing and booking platform with concurrency-safe
+ReserveX: a multi-tenant event ticketing platform with concurrency-safe
 booking and payment-recovery workflows. Backend first, frontend later.
 
-**Current phase:** Milestone 0 complete, Milestone 1 auth & schema implemented.
+**Current phase:** Phase 1 — Foundation (auth, central error handling, Zod validation, and rate limiting implemented; role middleware & auth testing next).
 
 ## Confirmed decisions
 
-- Plain JavaScript, Node/Express, MongoDB Atlas, Mongoose, React + Vite,
-  JWT + RBAC, Razorpay test mode, Jest + Supertest.
+- Plain JavaScript (CommonJS), Node/Express, MongoDB Atlas, Mongoose, React + Vite,
+  JWT + bcrypt, Zod, Razorpay test mode, Jest + Supertest.
 - General-admission tickets first (capacity counters). No seat maps yet.
-- Concurrency-safe booking using MongoDB atomic operations ($inc with conditional query).
-- No Redis, queues, AI, WebSockets or TypeScript for now.
-- Development order: backend -> database -> API testing -> frontend ->
-  integration -> deployment.
+- Concurrency-safe booking using MongoDB atomic conditional updates and transactions.
+- No PostgreSQL, Prisma, Redis, BullMQ, AI, WebSockets, or TypeScript for now.
+- Development order: backend -> API testing -> frontend -> integration -> deployment.
 
-## Milestones
+## Roadmap (Phases 1–9)
 
-Target: demonstrable MVP in roughly 10-12 days (placements run in parallel;
-this is a target, not a promise).
+Immediate MVP milestone target: **November 13, 2026**.
 
-### Milestone 0 — Setup (Days 1-2)
-- [x] Git repository initialized, commits structured
-- [x] `/server` and `/client` folders, `.gitignore`, `.env.example`
-- [x] Docker Compose configured with PostgreSQL 16
-- [x] Express skeleton (`app.js` / `server.js`, error handler, helmet, cors)
-- [x] Health-check endpoint + Supertest test suite passing
-- [x] Prisma initialized with schema and client generated
-- [x] README with setup steps
+### Phase 1 — Foundation
+- [x] Express skeleton (`app.js` / `server.js` separated)
+- [x] MongoDB Atlas connected natively via Mongoose (`src/config/db.js`)
+- [x] `User` Mongoose model (`src/models/user.model.js`)
+- [x] Security headers (`helmet`), `cors` (`credentials: true`), `cookie-parser`
+- [x] Health-check endpoint (`GET /health`) + Supertest test (`tests/health.test.js`)
+- [x] Central error handler (`AppError`, `error.middleware.js`, 404 catch-all)
+- [x] Auth endpoints (`POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`)
+- [x] Auth middleware (`auth.middleware.js` supporting Bearer headers & cookies)
+- [x] Zod request validation (`validate.middleware.js`, `auth.validator.js`)
+- [x] Auth rate limiting (`rateLimit.middleware.js`)
+- [ ] Role-based authorization middleware (`authorize`)
+- [ ] Auth flow tested (Postman + Supertest)
 
-### Milestone 1 — Core data and auth (Days 1-2)
-- [x] Prisma schema designed and validated
-- [ ] Live database migrations applied (`prisma db push` / `migrate dev` once DB is started)
-- [x] Register / login / GET /me endpoints
-- [x] JWT authentication middleware + role-check middleware (`authorize`, `authorizeOrgRole`)
-- [x] Organization & Membership models configured
-- [x] Auth validation and route guard tests passing (11/11 tests pass)
+### Phase 2 — Organizations
+- [ ] `Organization` and `Membership` Mongoose models
+- [ ] Organization creation and management endpoints
+- [ ] Membership management (`owner` / `staff` permissions)
+- [ ] Organization-level data isolation
 
-### Milestone 2 — Events and tickets (Days 3-4)
-- [ ] Organizer: create/update/publish events
-- [ ] Ticket types (price, capacity)
-- [ ] Public event listing and detail endpoints
-- [ ] Authorization tests for organizer endpoints
+### Phase 3 — Event Management
+- [ ] `Event` Mongoose model
+- [ ] Organizer create / update / publish / cancel event endpoints
+- [ ] Public event discovery and detail endpoints
 
-### Milestone 3 — Booking and concurrency (Days 3-5)
-- [ ] Booking hold (temporary reservation with expiry)
-- [ ] Capacity enforced in the database (conditional update + constraint)
-- [ ] Hold expiry job releases inventory
-- [ ] Concurrency test: N parallel requests never exceed capacity
-- [ ] Booking state machine enforced
+### Phase 4 — Ticket Management
+- [ ] `TicketType` model (price in integer paise, capacity, `reservedCount`, sales windows)
+- [ ] Ticket category creation and management endpoints
 
-### Milestone 4 — Payments (Days 5-6)
-- [ ] Razorpay order creation (test mode)
-- [ ] Payment verification endpoint
-- [ ] Webhook endpoint with raw-body signature verification
-- [ ] Idempotency: event-id dedupe table
-- [ ] Payment/booking state transitions driven by webhooks
-- [ ] Webhook tests (bad signature, duplicate event, out-of-order event)
+### Phase 5 — Booking Engine
+- [ ] `Booking` model (`PENDING_PAYMENT`, `CONFIRMED`, `EXPIRED`, `CANCELLED`, `REFUND_PENDING`)
+- [ ] Temporary booking holds with expiry timestamps
+- [ ] Atomic conditional inventory updates (preventing overselling)
+- [ ] Background hold expiry job (`src/jobs/`)
+- [ ] Concurrency tests (N parallel requests never exceed capacity)
 
-### Milestone 5 — Tickets and operations (Days 7-8)
-- [ ] QR ticket generation (signed token)
-- [ ] Check-in endpoint (a ticket can be used once)
-- [ ] Reconciliation job comparing local payments with Razorpay
-- [ ] Organizer view of payment exceptions
-- [ ] Cancellation and refund flow (basic)
+### Phase 6 — Payments
+- [ ] `Payment` and `WebhookEvent` models
+- [ ] Razorpay order creation (test mode) & signature verification
+- [ ] Idempotent signed webhook handler + payment recovery & reconciliation
 
-### Milestone 6 — Frontend, deploy, docs (Days 9-12)
-- [ ] Plain React UI: browse events, book, view tickets
-- [ ] Organizer UI: events, bookings, exceptions
-- [ ] CI pipeline (lint + tests) green
-- [ ] Deployed backend + frontend, live link
-- [ ] README: architecture diagram, invariants, how to run, how it is tested
+### Phase 7 — Digital Ticketing
+- [ ] `Ticket` model with signed QR identifiers
+- [ ] Check-in validation endpoint (single-use enforcement)
 
-### Later (only if time and measured need)
-- [ ] Redis for holds/caching
-- [ ] BullMQ background jobs
-- [ ] Reserved seat maps
-- [ ] Live availability updates
-- [ ] Load test with documented results
+### Phase 8 — Frontend
+- [ ] React + Vite + Tailwind + shadcn/ui setup under `/client`
+- [ ] Customer discovery, booking checkout, and QR ticket dashboard
+- [ ] Organizer dashboard and check-in interface
+
+### Phase 9 — Production Maturity
+- [ ] Automated test coverage & GitHub Actions CI
+- [ ] Deployment, logging, monitoring, and final README docs
 
 ## Completed work
 
-- Milestone 0: Monorepo layout, Docker Compose Postgres 16 config, `.gitignore`, `.env.example`, Express skeleton with separated `app.js` and `server.js`, Helmet, CORS, centralized error handling, and health check test.
-- Milestone 1: Prisma schema for users, organizations, memberships, events, ticket_types, bookings, payments. Auth endpoints (`/register`, `/login`, `/me`), bcrypt password hashing, JWT signing/verification, RBAC middleware, and 11 automated Supertest tests.
-
-## Current blockers / open questions
-
-- Starting local PostgreSQL container or service to apply live migrations.
-- Alignment on role naming: `owner` vs `ORGANIZER_ADMIN`, `staff` vs `ORGANIZER_STAFF`.
+- **Setup & GitHub:** Clean monorepo layout, `.gitignore`, `.env.example`, GitHub remote (`origin/main`) connected and pushed.
+- **Foundation & Auth:** Express app with Helmet/CORS/cookie-parser, MongoDB Atlas connection, `User` model, `/health` API + passing test, `AppError` + central `errorHandler`, `RegisterUser` / `loginUser` / `getMe` with `bcrypt` & JWT, Zod validation, and auth rate limiting.
 
 ## Session log
 
 | Date | What was done | Next step |
 |---|---|---|
-| 2026-11-08 | Project initialized; Milestone 0 & 1 setup, Express skeleton, Prisma schema, Auth module, and tests passing | Start Postgres, run migrations, align roles with ARCHITECTURE.md |
+| 2026-11-10 / 11 | Connected MongoDB Atlas natively, pushed repo to GitHub, implemented auth (`register`, `login`, `getMe`), central `AppError` + `errorHandler`, Zod validation, and auth rate limiter | Review Zod validation & rate limiting, add role authorization middleware, test auth endpoints, and complete Phase 2 (Organizations) |
 
 ## Resume claims checklist (add ONLY after it is built and tested)
 
