@@ -37,4 +37,25 @@ async function authMiddleware(req, res, next) {
   }
 }
 
-module.exports = authMiddleware;
+// Role-based access control middleware (runs AFTER authMiddleware!)
+// Example: router.get('/owner-only', authMiddleware, authorize('owner'), handler)
+function authorize(...allowedRoles) {
+  return (req, res, next) => {
+    if (!req.user) {
+      return next(new AppError('Unauthorized: Please log in first', 401));
+    }
+
+    if (!allowedRoles.includes(req.user.role)) {
+      return next(
+        new AppError(`Forbidden: Access restricted to [${allowedRoles.join(', ')}]`, 403)
+      );
+    }
+
+    next();
+  };
+}
+
+module.exports = {
+  authMiddleware,
+  authorize
+};
