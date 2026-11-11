@@ -1,13 +1,13 @@
 # PROJECT_STATUS.md — ReserveX
 
-Last updated: 2026-11-11
+Last updated: 2026-11-12
 
 ## Summary
 
 ReserveX: a multi-tenant event ticketing platform with concurrency-safe
 booking and payment-recovery workflows. Backend first, frontend later.
 
-**Current phase:** Phase 1 — Foundation (auth, central error handling, Zod validation, and rate limiting implemented; role middleware & auth testing next).
+**Current phase:** Phase 1 & Phase 2 code + test files implemented (live test run & Phase 2 walkthrough scheduled first thing next session, followed by Phase 3).
 
 ## Confirmed decisions
 
@@ -30,17 +30,18 @@ Immediate MVP milestone target: **November 13, 2026**.
 - [x] Health-check endpoint (`GET /health`) + Supertest test (`tests/health.test.js`)
 - [x] Central error handler (`AppError`, `error.middleware.js`, 404 catch-all)
 - [x] Auth endpoints (`POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`)
-- [x] Auth middleware (`auth.middleware.js` supporting Bearer headers & cookies)
+- [x] Auth middleware (`authMiddleware` + `authorize` role check)
 - [x] Zod request validation (`validate.middleware.js`, `auth.validator.js`)
 - [x] Auth rate limiting (`rateLimit.middleware.js`)
-- [ ] Role-based authorization middleware (`authorize`)
-- [ ] Auth flow tested (Postman + Supertest)
+- [ ] Run & verify `tests/auth.test.js` against MongoDB Atlas
 
 ### Phase 2 — Organizations
-- [ ] `Organization` and `Membership` Mongoose models
-- [ ] Organization creation and management endpoints
-- [ ] Membership management (`owner` / `staff` permissions)
-- [ ] Organization-level data isolation
+- [x] `Organization` and `Membership` Mongoose models (with compound unique index)
+- [x] Organization-level data isolation middleware (`requireOrgRole` in `org.middleware.js`)
+- [x] Organization service (`createOrganization` transaction, `getMyOrganizations`, `getMembers`, `addMember`, `removeMember` with last-owner guard)
+- [x] Organization validator, controller, routes (`/api/organizations`)
+- [x] Integration test file drafted (`tests/organization.test.js`)
+- [ ] Review Phase 2 end-to-end & run `tests/organization.test.js` against MongoDB Atlas
 
 ### Phase 3 — Event Management
 - [ ] `Event` Mongoose model
@@ -79,13 +80,14 @@ Immediate MVP milestone target: **November 13, 2026**.
 ## Completed work
 
 - **Setup & GitHub:** Clean monorepo layout, `.gitignore`, `.env.example`, GitHub remote (`origin/main`) connected and pushed.
-- **Foundation & Auth:** Express app with Helmet/CORS/cookie-parser, MongoDB Atlas connection, `User` model, `/health` API + passing test, `AppError` + central `errorHandler`, `RegisterUser` / `loginUser` / `getMe` with `bcrypt` & JWT, Zod validation, and auth rate limiting.
+- **Foundation & Auth:** Express app with Helmet/CORS/cookie-parser, MongoDB Atlas connection, `User` model, `/health` API + passing test, `AppError` + central `errorHandler`, `RegisterUser` / `loginUser` / `getMe` with `bcrypt` & JWT, `authorize` role check, Zod validation, and auth rate limiting.
+- **Organizations (Code + Test File Ready):** `Organization` & `Membership` models, `requireOrgRole` multi-tenant isolation middleware, `organization.service.js` with MongoDB transactions, routes/controller/validator, and `tests/organization.test.js` written (not run yet).
 
 ## Session log
 
 | Date | What was done | Next step |
 |---|---|---|
-| 2026-11-10 / 11 | Connected MongoDB Atlas natively, pushed repo to GitHub, implemented auth (`register`, `login`, `getMe`), central `AppError` + `errorHandler`, Zod validation, and auth rate limiter | Review Zod validation & rate limiting, add role authorization middleware, test auth endpoints, and complete Phase 2 (Organizations) |
+| 2026-11-11 / 12 | Finished `authorize` role check, built Phase 2 (`Organization`, `Membership`, `requireOrgRole`, service transaction, controller, routes), created `tests/auth.test.js` & `tests/organization.test.js`, updated `PROJECT_STATUS.md` | Walk through Phase 2 again, run `npm test` to verify Auth & Organizations live, then start Phase 3 (Event Management) |
 
 ## Resume claims checklist (add ONLY after it is built and tested)
 
