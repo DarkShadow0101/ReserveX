@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 
 const healthRoutes = require('./routes/health.routes');
 const authRoutes = require('./routes/auth.routes');
+const organizationRoutes = require('./routes/organization.routes');
 const AppError = require('./utils/errors');
 const errorHandler = require('./middleware/error.middleware');
 
@@ -33,6 +34,7 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/health', healthRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/organizations', organizationRoutes);
 
 // 404 Catch-All for unknown routes (must come AFTER all valid routes)
 app.use((req, res, next) => {
