@@ -93,7 +93,7 @@ These may be added later, only when a measured need is shown.
   2. Auth and role checks, including cross-organization access attempts.
   3. State machine: illegal transitions are rejected.
   4. Webhook: invalid signature rejected, duplicate event processed once.
-- Tests must run against a real Postgres instance (test database), not mocks,
+- Tests must run against a real MongoDB Atlas replica set instance (test database), not mocks,
   for anything involving transactions or constraints.
 - CI must run lint and tests on every push.
 

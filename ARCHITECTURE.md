@@ -49,20 +49,19 @@ Request flow: `route -> middleware -> controller -> service -> database`.
 reservex/
 ├── client/                  # React + Vite (later)
 ├── server/
-│   ├── prisma/              # schema.prisma, migrations
 │   ├── src/
-│   │   ├── config/          # env, db, razorpay clients
-│   │   ├── middleware/      # auth, roles, validate, errorHandler, rateLimit
-│   │   ├── routes/
-│   │   ├── controllers/
-│   │   ├── services/        # business logic (booking, payment, events...)
+│   │   ├── config/          # db (Mongoose MongoDB connection)
+│   │   ├── controllers/     # auth, org, event, ticketType, booking
 │   │   ├── jobs/            # hold expiry, reconciliation
-│   │   ├── validators/      # Zod schemas
-│   │   ├── utils/
+│   │   ├── middleware/      # auth, org role, validate, error, rateLimit
+│   │   ├── models/          # User, Organization, Membership, Event, TicketType, Booking
+│   │   ├── routes/          # express routers
+│   │   ├── services/        # business logic & transactional workflows
+│   │   ├── utils/           # errors (AppError)
+│   │   ├── validators/      # Zod validation schemas
 │   │   ├── app.js           # builds the Express app
 │   │   └── server.js        # starts listening
-│   └── tests/
-├── docker-compose.yml
+│   └── tests/               # Jest + Supertest suites
 ├── .env.example
 ├── AGENTS.md
 ├── ARCHITECTURE.md
@@ -173,20 +172,31 @@ A ticket can be used exactly once.
 5. The same webhook event is processed at most once.
 6. A ticket can be checked in at most once.
 
-### Approach **[ASSUMPTION]**
-Phase 1 (Postgres only, no Redis):
-- Reserve inventory with a single conditional update inside a transaction:
-  `UPDATE ticket_types SET reserved_count = reserved_count + :qty
-   WHERE id = :id AND reserved_count + :qty <= capacity`
-  If zero rows updated, the request fails with 409 (sold out).
-- Create the booking (status HELD) with `hold_expires_at` in the same
+### Approach **[CONFIRMED]**
+MongoDB Atlas (no Redis):
+- Reserve inventory with a single atomic conditional update inside a replica set session:
+  ```javascript
+  TicketType.findOneAndUpdate(
+    {
+      _id: tierId,
+      isActive: true,
+      $expr: {
+        $gte: [
+          { $subtract: ["$totalCapacity", { $add: ["$reservedCount", "$soldCount"] }] },
+          requestedQty
+        ]
+      }
+    },
+    { $inc: { reservedCount: requestedQty } },
+    { session, returnDocument: 'after' }
+  );
+  ```
+  If zero documents match, the request fails with 400 (insufficient tickets).
+- Create the booking (status `PENDING_PAYMENT`) with `holdExpiresAt` in the same
   transaction.
-- A scheduled job releases expired holds and decrements `reserved_count`.
-- The CHECK constraint is the final guard even if application logic has a bug.
-- Idempotency key on booking creation prevents duplicate bookings on retry.
-
-Later (only with a measured need): Redis for fast holds, with Postgres still the
-source of truth.
+- A scheduled background job (`jobs/expireHolds.job.js`) releases expired holds and decrements `reservedCount`.
+- Compound unique indexes and document constraints are the final guard.
+- Idempotency key / booking reference prevents duplicate bookings on retry.
 
 ## 8. Payment and webhook design **[ASSUMPTION]**
 
@@ -274,12 +284,12 @@ calculation, signed QR tokens, raw-body webhook signature verification.
 - Webhook tests: invalid signature rejected, duplicate event processed once,
   out-of-order event does not move state backwards.
 - Hold expiry test: expired holds release inventory.
-- Run against a real Postgres test database. CI runs everything on each push.
+- Run against a real MongoDB Atlas replica set test database. CI runs everything on each push.
 - Do not publish performance numbers until they are measured.
 
 ## 12. Environment variables (see .env.example)
 
-DATABASE_URL, JWT_SECRET, JWT_EXPIRES_IN, PORT, NODE_ENV, CLIENT_URL,
+MONGO_URI, JWT_SECRET, JWT_EXPIRES_IN, PORT, NODE_ENV, CLIENT_URL,
 RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET,
 QR_SIGNING_SECRET, HOLD_TTL_MINUTES.
 
@@ -290,7 +300,7 @@ QR_SIGNING_SECRET, HOLD_TTL_MINUTES.
 2. UUID vs bigint primary keys.
 3. Refund policy and cancellation window rules.
 4. Late-payment handling after hold expiry (re-acquire vs refund).
-5. Hosting for backend and managed Postgres.
+5. Hosting for backend and MongoDB Atlas.
 6. Whether staff and owner roles need finer permissions.
 
 ## 14. Decision log
@@ -302,3 +312,4 @@ QR_SIGNING_SECRET, HOLD_TTL_MINUTES.
 | 2026-11-08 | Postgres only first, Redis later | Database-level guarantees first; add Redis only with a measured need |
 | 2026-11-08 | General admission before seat maps | Keeps MVP achievable |
 | 2026-11-08 | No AI features in ReserveX | Would dilute the engineering story; AI exposure lives in SentinelAI |
+| 2026-11-10 | Pivoted from Postgres + Prisma to MongoDB Atlas + Mongoose | Native document modeling, replica-set multi-document transactions, and atomic conditional expressions without ORM generation conflicts |
