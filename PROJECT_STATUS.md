@@ -7,7 +7,7 @@ Last updated: 2026-11-12
 ReserveX: a multi-tenant event ticketing platform with concurrency-safe
 booking and payment-recovery workflows. Backend first, frontend later.
 
-**Current phase:** Phase 1, Phase 2, and Phase 3 100% complete and verified live (32/32 tests passing). Ready to move to Phase 4 (Ticket Management).
+**Current phase:** Phases 1 through 5 100% complete and verified live (53/53 tests passing). Ready to move to Phase 6 (Payments & Razorpay Integration).
 
 ## Confirmed decisions
 
@@ -50,15 +50,19 @@ Immediate MVP milestone target: **November 13, 2026**.
 - [x] Integration test suite for Phase 3 (`tests/event.test.js` - 14/14 passed)
 
 ### Phase 4 — Ticket Management
-- [ ] `TicketType` model (price in integer paise, capacity, `reservedCount`, sales windows)
-- [ ] Ticket category creation and management endpoints
+- [x] `TicketType` model (`src/models/ticketType.model.js`, price in integer paise, capacity, `reservedCount`, `soldCount`, sales windows)
+- [x] Ticket tier creation and management endpoints (`POST /api/events/:id/ticket-types`, `PATCH /api/ticket-types/:id`, `PATCH /api/ticket-types/:id/toggle`)
+- [x] Public ticket discovery (`GET /api/events/:id/ticket-types`)
+- [x] Integration test suite for Phase 4 (`tests/ticketType.test.js` - 10/10 passed)
 
 ### Phase 5 — Booking Engine
-- [ ] `Booking` model (`PENDING_PAYMENT`, `CONFIRMED`, `EXPIRED`, `CANCELLED`, `REFUND_PENDING`)
-- [ ] Temporary booking holds with expiry timestamps
-- [ ] Atomic conditional inventory updates (preventing overselling)
-- [ ] Background hold expiry job (`src/jobs/`)
-- [ ] Concurrency tests (N parallel requests never exceed capacity)
+- [x] `Booking` model (`src/models/booking.model.js` with `PENDING_PAYMENT`, `CONFIRMED`, `EXPIRED`, `CANCELLED`, `REFUND_PENDING`)
+- [x] Temporary booking holds with configurable TTL (`holdExpiresAt`)
+- [x] Atomic conditional inventory updates with zero overselling (`$expr` capacity checks in transaction)
+- [x] Customer booking endpoints (`POST /api/bookings`, `POST /api/bookings/:id/cancel`, `GET /api/bookings/my`, `GET /api/bookings/:id`)
+- [x] Organizer booking overview (`GET /api/events/:id/bookings`)
+- [x] Background hold expiry job (`src/jobs/expireHolds.job.js` + on-demand cleaner)
+- [x] Concurrency tests passing (`tests/booking.test.js` - 8 parallel requests for 3 seats: 3 succeed, 5 reject, 0 oversold)
 
 ### Phase 6 — Payments
 - [ ] `Payment` and `WebhookEvent` models
@@ -92,10 +96,11 @@ Immediate MVP milestone target: **November 13, 2026**.
 | 2026-11-12 | Executed full test suite (`npm test`). All 18 tests passed across 3 test suites live against MongoDB Atlas. Sanitized `.env.example`. | Begin Phase 3 (Event Management) |
 | 2026-11-12 | Fully implemented Phase 3 (Event model, validators, service, controller, organizer & public routes, integration test suite). 32/32 tests passing across 4 suites live. | Begin Phase 4 (Ticket Management) |
 | 2026-11-12 | Implemented Task 5 concurrency protections: duplicate membership 11000 -> 409 handling and transactional atomic `ownerCount` guard for last-owner protection. 34/34 tests passing across 4 suites live. | Begin Phase 4 (Ticket Management) |
+| 2026-11-13 | Fully implemented Phase 4 (Ticket Management) & Phase 5 (Concurrency-Safe Booking Engine, Atomic Inventory Holds, Background Expiry Cleaner). 53/53 tests passing across 6 suites live. | Begin Phase 6 (Payments & Razorpay Integration) |
 
 ## Resume claims checklist (add ONLY after it is built and tested)
 
-- [ ] Concurrency-safe booking (with a passing concurrency test)
+- [x] Concurrency-safe booking (verified with parallel load tests in `tests/booking.test.js`)
 - [ ] Signed webhook verification + idempotent processing
 - [ ] Reconciliation job
 - [x] Role-based access with organization isolation (verified in `tests/organization.test.js`)

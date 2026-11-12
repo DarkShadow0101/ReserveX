@@ -7,6 +7,8 @@ const healthRoutes = require('./routes/health.routes');
 const authRoutes = require('./routes/auth.routes');
 const organizationRoutes = require('./routes/organization.routes');
 const eventRoutes = require('./routes/event.routes');
+const ticketTypeRoutes = require('./routes/ticketType.routes');
+const bookingRoutes = require('./routes/booking.routes');
 const AppError = require('./utils/errors');
 const errorHandler = require('./middleware/error.middleware');
 
@@ -37,6 +39,8 @@ app.use('/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/organizations', organizationRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/ticket-types', ticketTypeRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // 404 Catch-All for unknown routes (must come AFTER all valid routes)
 app.use((req, res, next) => {
