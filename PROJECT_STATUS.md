@@ -7,7 +7,7 @@ Last updated: 2026-11-12
 ReserveX: a multi-tenant event ticketing platform with concurrency-safe
 booking and payment-recovery workflows. Backend first, frontend later.
 
-**Current phase:** Phase 1 & Phase 2 100% complete and verified live (18/18 tests passing). Ready to move to Phase 3 (Event Management).
+**Current phase:** Phase 1, Phase 2, and Phase 3 100% complete and verified live (32/32 tests passing). Ready to move to Phase 4 (Ticket Management).
 
 ## Confirmed decisions
 
@@ -44,9 +44,10 @@ Immediate MVP milestone target: **November 13, 2026**.
 - [x] Review Phase 2 end-to-end & run `tests/organization.test.js` against MongoDB Atlas (8/8 passed)
 
 ### Phase 3 — Event Management
-- [ ] `Event` Mongoose model
-- [ ] Organizer create / update / publish / cancel event endpoints
-- [ ] Public event discovery and detail endpoints
+- [x] `Event` Mongoose model (`src/models/event.model.js`)
+- [x] Organizer create / update / publish / cancel event endpoints
+- [x] Public event discovery and detail endpoints (`GET /api/events`, `GET /api/events/:id`)
+- [x] Integration test suite for Phase 3 (`tests/event.test.js` - 14/14 passed)
 
 ### Phase 4 — Ticket Management
 - [ ] `TicketType` model (price in integer paise, capacity, `reservedCount`, sales windows)
@@ -89,6 +90,7 @@ Immediate MVP milestone target: **November 13, 2026**.
 |---|---|---|
 | 2026-11-11 / 12 | Finished `authorize` role check, built Phase 2 (`Organization`, `Membership`, `requireOrgRole`, service transaction, controller, routes), created test files | Run test suite against MongoDB Atlas |
 | 2026-11-12 | Executed full test suite (`npm test`). All 18 tests passed across 3 test suites live against MongoDB Atlas. Sanitized `.env.example`. | Begin Phase 3 (Event Management) |
+| 2026-11-12 | Fully implemented Phase 3 (Event model, validators, service, controller, organizer & public routes, integration test suite). 32/32 tests passing across 4 suites live. | Begin Phase 4 (Ticket Management) |
 
 ## Resume claims checklist (add ONLY after it is built and tested)
 
