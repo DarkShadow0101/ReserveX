@@ -7,7 +7,7 @@ Last updated: 2026-11-12
 ReserveX: a multi-tenant event ticketing platform with concurrency-safe
 booking and payment-recovery workflows. Backend first, frontend later.
 
-**Current phase:** Phase 1 & Phase 2 code + test files implemented (live test run & Phase 2 walkthrough scheduled first thing next session, followed by Phase 3).
+**Current phase:** Phase 1 & Phase 2 100% complete and verified live (18/18 tests passing). Ready to move to Phase 3 (Event Management).
 
 ## Confirmed decisions
 
@@ -33,7 +33,7 @@ Immediate MVP milestone target: **November 13, 2026**.
 - [x] Auth middleware (`authMiddleware` + `authorize` role check)
 - [x] Zod request validation (`validate.middleware.js`, `auth.validator.js`)
 - [x] Auth rate limiting (`rateLimit.middleware.js`)
-- [ ] Run & verify `tests/auth.test.js` against MongoDB Atlas
+- [x] Run & verify `tests/auth.test.js` against MongoDB Atlas (9/9 passed)
 
 ### Phase 2 — Organizations
 - [x] `Organization` and `Membership` Mongoose models (with compound unique index)
@@ -41,7 +41,7 @@ Immediate MVP milestone target: **November 13, 2026**.
 - [x] Organization service (`createOrganization` transaction, `getMyOrganizations`, `getMembers`, `addMember`, `removeMember` with last-owner guard)
 - [x] Organization validator, controller, routes (`/api/organizations`)
 - [x] Integration test file drafted (`tests/organization.test.js`)
-- [ ] Review Phase 2 end-to-end & run `tests/organization.test.js` against MongoDB Atlas
+- [x] Review Phase 2 end-to-end & run `tests/organization.test.js` against MongoDB Atlas (8/8 passed)
 
 ### Phase 3 — Event Management
 - [ ] `Event` Mongoose model
@@ -87,13 +87,14 @@ Immediate MVP milestone target: **November 13, 2026**.
 
 | Date | What was done | Next step |
 |---|---|---|
-| 2026-11-11 / 12 | Finished `authorize` role check, built Phase 2 (`Organization`, `Membership`, `requireOrgRole`, service transaction, controller, routes), created `tests/auth.test.js` & `tests/organization.test.js`, updated `PROJECT_STATUS.md` | Walk through Phase 2 again, run `npm test` to verify Auth & Organizations live, then start Phase 3 (Event Management) |
+| 2026-11-11 / 12 | Finished `authorize` role check, built Phase 2 (`Organization`, `Membership`, `requireOrgRole`, service transaction, controller, routes), created test files | Run test suite against MongoDB Atlas |
+| 2026-11-12 | Executed full test suite (`npm test`). All 18 tests passed across 3 test suites live against MongoDB Atlas. Sanitized `.env.example`. | Begin Phase 3 (Event Management) |
 
 ## Resume claims checklist (add ONLY after it is built and tested)
 
 - [ ] Concurrency-safe booking (with a passing concurrency test)
 - [ ] Signed webhook verification + idempotent processing
 - [ ] Reconciliation job
-- [ ] Role-based access with organization isolation
+- [x] Role-based access with organization isolation (verified in `tests/organization.test.js`)
 - [ ] CI pipeline
 - [ ] Live deployment
