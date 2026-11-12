@@ -91,6 +91,7 @@ Immediate MVP milestone target: **November 13, 2026**.
 | 2026-11-11 / 12 | Finished `authorize` role check, built Phase 2 (`Organization`, `Membership`, `requireOrgRole`, service transaction, controller, routes), created test files | Run test suite against MongoDB Atlas |
 | 2026-11-12 | Executed full test suite (`npm test`). All 18 tests passed across 3 test suites live against MongoDB Atlas. Sanitized `.env.example`. | Begin Phase 3 (Event Management) |
 | 2026-11-12 | Fully implemented Phase 3 (Event model, validators, service, controller, organizer & public routes, integration test suite). 32/32 tests passing across 4 suites live. | Begin Phase 4 (Ticket Management) |
+| 2026-11-12 | Implemented Task 5 concurrency protections: duplicate membership 11000 -> 409 handling and transactional atomic `ownerCount` guard for last-owner protection. 34/34 tests passing across 4 suites live. | Begin Phase 4 (Ticket Management) |
 
 ## Resume claims checklist (add ONLY after it is built and tested)
 

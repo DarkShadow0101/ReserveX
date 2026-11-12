@@ -42,7 +42,8 @@ async function createOrganization(userId, { name, description }) {
             name,
             slug,
             description: description || '',
-            createdBy: userId
+            createdBy: userId,
+            ownerCount: 1
           }
         ],
         { session }
@@ -113,6 +114,7 @@ async function addMember(orgId, { email, role }) {
     throw new AppError('No registered user found with this email', 404);
   }
 
+  // Pre-check (fast path for ordinary requests)
   const existingMembership = await Membership.findOne({
     user: targetUser._id,
     organization: orgId
@@ -122,47 +124,114 @@ async function addMember(orgId, { email, role }) {
     throw new AppError('User is already a member of this organization', 409);
   }
 
-  const membership = await Membership.create({
-    user: targetUser._id,
-    organization: orgId,
-    role:role,
-  });
+  const session = await mongoose.startSession();
+  try {
+    let createdMembership;
+    await session.withTransaction(async () => {
+      const [membership] = await Membership.create(
+        [
+          {
+            user: targetUser._id,
+            organization: orgId,
+            role
+          }
+        ],
+        { session }
+      );
 
-  return {
-    id: membership._id,
-    user: targetUser,
-    role: membership.role,
-    joinedAt: membership.createdAt
-  };
+      // If adding a co-owner, atomically increment ownerCount
+      if (role === 'owner') {
+        await Organization.findByIdAndUpdate(
+          orgId,
+          { $inc: { ownerCount: 1 } },
+          { session }
+        );
+      }
+
+      createdMembership = membership;
+    });
+
+    return {
+      id: createdMembership._id,
+      user: targetUser,
+      role: createdMembership.role,
+      joinedAt: createdMembership.createdAt
+    };
+  } catch (err) {
+    // If concurrent requests pass the initial findOne check simultaneously,
+    // the MongoDB unique compound index triggers a code 11000 duplicate key error.
+    if (err.code === 11000) {
+      throw new AppError('User is already a member of this organization', 409);
+    }
+    throw err;
+  } finally {
+    await session.endSession();
+  }
 }
 
 // Remove a member from an organization (never allow removing the last owner)
+// Serialized using an atomic organization-level ownerCount guard within a transaction
 async function removeMember(orgId, targetUserId) {
   if (!mongoose.Types.ObjectId.isValid(targetUserId)) {
     throw new AppError('Invalid user ID', 400);
   }
 
-  const targetMembership = await Membership.findOne({
-    user: targetUserId,
-    organization: orgId
-  });
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const targetMembership = await Membership.findOne({
+        user: targetUserId,
+        organization: orgId
+      }).session(session);
 
-  if (!targetMembership) {
-    throw new AppError('Member not found in this organization', 404);
-  }
+      if (!targetMembership) {
+        throw new AppError('Member not found in this organization', 404);
+      }
 
-  if (targetMembership.role === 'owner') {
-    const ownerCount = await Membership.countDocuments({
-      organization: orgId,
-      role: 'owner'
+      if (targetMembership.role === 'owner') {
+        // Ensure ownerCount exists on the organization (self-healing for legacy records)
+        const org = await Organization.findById(orgId).session(session);
+        if (!org) {
+          throw new AppError('Organization not found', 404);
+        }
+
+        if (org.ownerCount == null) {
+          const actualOwners = await Membership.countDocuments({
+            organization: orgId,
+            role: 'owner'
+          }).session(session);
+          org.ownerCount = actualOwners;
+          await org.save({ session });
+        }
+
+        // Atomic decrement with strictly greater than 1 guard:
+        // If two concurrent requests try to remove both owners simultaneously,
+        // exactly ONE can match { ownerCount: { $gt: 1 } } and decrement 2 -> 1.
+        // The losing request finds no matching document, gets null, and aborts.
+        const updatedOrg = await Organization.findOneAndUpdate(
+          {
+            _id: orgId,
+            ownerCount: { $gt: 1 }
+          },
+          {
+            $inc: { ownerCount: -1 }
+          },
+          {
+            session,
+            returnDocument: 'after'
+          }
+        );
+
+        if (!updatedOrg) {
+          throw new AppError('Cannot remove the last owner of an organization', 400);
+        }
+      }
+
+      await targetMembership.deleteOne({ session });
     });
-
-    if (ownerCount <= 1) {
-      throw new AppError('Cannot remove the last owner of an organization', 400);
-    }
+  } finally {
+    await session.endSession();
   }
-
-  await targetMembership.deleteOne();
 }
 
 module.exports = {

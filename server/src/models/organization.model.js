@@ -30,6 +30,11 @@ const organizationSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true
+    },
+    ownerCount: {
+      type: Number,
+      default: 1,
+      min: [1, 'Organization must have at least one owner']
     }
   },
   {

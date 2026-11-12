@@ -173,4 +173,70 @@ describe('Organizations & Multi-Tenancy API (/api/organizations)', () => {
       .set('Authorization', `Bearer ${ownerA.token}`);
     expect(removeStaffRes.statusCode).toBe(200);
   });
+
+  describe('Concurrency & Race Condition Protections', () => {
+    it('Edge Case A: Concurrent duplicate addMember requests should result in exactly one 201 and one 409', async () => {
+      const candidateUser = await registerTestUser('Candidate Dave', 'org-dave');
+
+      // Fire 2 simultaneous requests to add Dave to Org A
+      const [res1, res2] = await Promise.all([
+        request(app)
+          .post(`/api/organizations/${orgAId}/members`)
+          .set('Authorization', `Bearer ${ownerA.token}`)
+          .send({ email: candidateUser.user.email, role: 'staff' }),
+        request(app)
+          .post(`/api/organizations/${orgAId}/members`)
+          .set('Authorization', `Bearer ${ownerA.token}`)
+          .send({ email: candidateUser.user.email, role: 'staff' })
+      ]);
+
+      const statusCodes = [res1.statusCode, res2.statusCode].sort();
+      expect(statusCodes).toEqual([201, 409]);
+
+      const conflictRes = res1.statusCode === 409 ? res1 : res2;
+      expect(conflictRes.body.message).toContain('already a member');
+
+      // Verify only one membership document exists in DB
+      const memberships = await Membership.find({
+        user: candidateUser.user.id,
+        organization: orgAId
+      });
+      expect(memberships.length).toBe(1);
+    });
+
+    it('Edge Case B: Concurrent owner removals must never orphan an org (only one owner can be removed)', async () => {
+      // 1. Add a second owner to Org A (so Org A now has 2 owners: ownerA and coOwner)
+      const coOwner = await registerTestUser('Co-Owner Eve', 'org-eve');
+      const addOwnerRes = await request(app)
+        .post(`/api/organizations/${orgAId}/members`)
+        .set('Authorization', `Bearer ${ownerA.token}`)
+        .send({ email: coOwner.user.email, role: 'owner' });
+      expect(addOwnerRes.statusCode).toBe(201);
+
+      // Verify organization has 2 owners
+      const ownersBefore = await Membership.find({ organization: orgAId, role: 'owner' });
+      expect(ownersBefore.length).toBe(2);
+
+      // 2. Fire two simultaneous delete requests to remove BOTH owners at once
+      const [delRes1, delRes2] = await Promise.all([
+        request(app)
+          .delete(`/api/organizations/${orgAId}/members/${ownerA.user.id}`)
+          .set('Authorization', `Bearer ${coOwner.token}`),
+        request(app)
+          .delete(`/api/organizations/${orgAId}/members/${coOwner.user.id}`)
+          .set('Authorization', `Bearer ${ownerA.token}`)
+      ]);
+
+      const statusCodes = [delRes1.statusCode, delRes2.statusCode].sort();
+      // Exactly one succeeds (200) and one is rejected (400)
+      expect(statusCodes).toEqual([200, 400]);
+
+      const failedRes = delRes1.statusCode === 400 ? delRes1 : delRes2;
+      expect(failedRes.body.message).toContain('Cannot remove the last owner of an organization');
+
+      // 3. Critically verify: exactly 1 owner still exists in the database
+      const ownersAfter = await Membership.find({ organization: orgAId, role: 'owner' });
+      expect(ownersAfter.length).toBe(1);
+    });
+  });
 });
