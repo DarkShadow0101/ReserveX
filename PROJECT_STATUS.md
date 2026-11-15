@@ -7,7 +7,7 @@ Last updated: 2026-11-12
 ReserveX: a multi-tenant event ticketing platform with concurrency-safe
 booking and payment-recovery workflows. Backend first, frontend later.
 
-**Current phase:** Phases 1 through 5 100% complete and verified live (53/53 tests passing). Ready to move to Phase 6 (Payments & Razorpay Integration).
+**Current phase:** Phases 1 through 7 100% complete and verified live (68/68 tests passing). Complete backend MVP operational! Ready to move to Phase 8 (Frontend: React + Vite + Tailwind) or CI/Deployment.
 
 ## Confirmed decisions
 
@@ -65,13 +65,16 @@ Immediate MVP milestone target: **November 13, 2026**.
 - [x] Concurrency tests passing (`tests/booking.test.js` - 8 parallel requests for 3 seats: 3 succeed, 5 reject, 0 oversold)
 
 ### Phase 6 — Payments
-- [ ] `Payment` and `WebhookEvent` models
-- [ ] Razorpay order creation (test mode) & signature verification
-- [ ] Idempotent signed webhook handler + payment recovery & reconciliation
+- [x] `Payment` and `WebhookEvent` models (`src/models/payment.model.js`, `src/models/webhookEvent.model.js`)
+- [x] Razorpay order creation (`POST /api/payments/create-order`) & HMAC-SHA256 signature verification (`POST /api/payments/verify`)
+- [x] Idempotent signed webhook handler (`POST /api/payments/webhook` with rawBody HMAC check & duplicate event deduplication)
+- [x] Integration test suite for Phase 6 (`tests/payment.test.js` - 7/7 passed)
 
 ### Phase 7 — Digital Ticketing
-- [ ] `Ticket` model with signed QR identifiers
-- [ ] Check-in validation endpoint (single-use enforcement)
+- [x] `Ticket` model with cryptographically signed QR tokens (`src/models/ticket.model.js`, HMAC-SHA256 base64url envelope)
+- [x] Check-in validation endpoint (`POST /api/tickets/checkin` with strict single-use enforcement, 409 on duplicate scans)
+- [x] Customer ticket dashboard & organizer ticket list endpoints (`GET /api/tickets/my`, `GET /api/tickets/:id`, `GET /api/events/:id/tickets`)
+- [x] Integration test suite for Phase 7 (`tests/ticket.test.js` - 8/8 passed)
 
 ### Phase 8 — Frontend
 - [ ] React + Vite + Tailwind + shadcn/ui setup under `/client`
@@ -97,11 +100,12 @@ Immediate MVP milestone target: **November 13, 2026**.
 | 2026-11-12 | Fully implemented Phase 3 (Event model, validators, service, controller, organizer & public routes, integration test suite). 32/32 tests passing across 4 suites live. | Begin Phase 4 (Ticket Management) |
 | 2026-11-12 | Implemented Task 5 concurrency protections: duplicate membership 11000 -> 409 handling and transactional atomic `ownerCount` guard for last-owner protection. 34/34 tests passing across 4 suites live. | Begin Phase 4 (Ticket Management) |
 | 2026-11-13 | Fully implemented Phase 4 (Ticket Management) & Phase 5 (Concurrency-Safe Booking Engine, Atomic Inventory Holds, Background Expiry Cleaner). 53/53 tests passing across 6 suites live. | Begin Phase 6 (Payments & Razorpay Integration) |
+| 2026-11-16 | Fully implemented Phase 6 (Payments, Razorpay order creation, HMAC signature verification, idempotent webhooks) & Phase 7 (Digital Ticketing, cryptographically signed QR tokens, single-use check-in enforcement). 68/68 tests passing across 8 suites live. | Begin Phase 8 (Frontend: React + Vite + Tailwind) |
 
 ## Resume claims checklist (add ONLY after it is built and tested)
 
 - [x] Concurrency-safe booking (verified with parallel load tests in `tests/booking.test.js`)
-- [ ] Signed webhook verification + idempotent processing
+- [x] Signed webhook verification + idempotent processing (verified in `tests/payment.test.js`)
 - [ ] Reconciliation job
 - [x] Role-based access with organization isolation (verified in `tests/organization.test.js`)
 - [ ] CI pipeline

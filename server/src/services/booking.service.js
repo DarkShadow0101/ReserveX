@@ -173,12 +173,15 @@ async function cancelBookingHold(bookingId, userId) {
 }
 
 // 3. Confirm booking (transition PENDING_PAYMENT -> CONFIRMED, reservedCount -> soldCount)
-async function confirmBookingPayment(bookingId, paymentId = null) {
+async function confirmBookingPayment(bookingId, paymentId = null, existingSession = null) {
   if (!mongoose.Types.ObjectId.isValid(bookingId)) {
     throw new AppError('Invalid booking ID', 400);
   }
 
-  const booking = await Booking.findById(bookingId);
+  const query = Booking.findById(bookingId);
+  if (existingSession) query.session(existingSession);
+  const booking = await query;
+
   if (!booking) {
     throw new AppError('Booking not found', 404);
   }
@@ -195,28 +198,36 @@ async function confirmBookingPayment(bookingId, paymentId = null) {
     throw new AppError('Booking hold has expired. The inventory has been released.', 400);
   }
 
-  const session = await mongoose.startSession();
-  try {
-    await session.withTransaction(async () => {
-      for (const item of booking.items) {
-        await TicketType.findByIdAndUpdate(
-          item.ticketType,
-          {
-            $inc: {
-              reservedCount: -item.quantity, // release hold
-              soldCount: item.quantity      // convert to permanently sold
-            }
-          },
-          { session }
-        );
-      }
+  async function executeConfirmation(session) {
+    for (const item of booking.items) {
+      await TicketType.findByIdAndUpdate(
+        item.ticketType,
+        {
+          $inc: {
+            reservedCount: -item.quantity, // release hold
+            soldCount: item.quantity      // convert to permanently sold
+          }
+        },
+        { session }
+      );
+    }
 
-      booking.status = 'CONFIRMED';
-      booking.paymentId = paymentId || `pay_sim_${Date.now()}`;
-      await booking.save({ session });
-    });
-  } finally {
-    await session.endSession();
+    booking.status = 'CONFIRMED';
+    booking.paymentId = paymentId || `pay_sim_${Date.now()}`;
+    await booking.save({ session });
+  }
+
+  if (existingSession) {
+    await executeConfirmation(existingSession);
+  } else {
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        await executeConfirmation(session);
+      });
+    } finally {
+      await session.endSession();
+    }
   }
 
   return booking;

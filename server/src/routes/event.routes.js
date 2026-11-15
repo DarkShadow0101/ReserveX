@@ -4,6 +4,7 @@ const router = express.Router();
 const eventController = require('../controllers/event.controller');
 const ticketTypeController = require('../controllers/ticketType.controller');
 const bookingController = require('../controllers/booking.controller');
+const ticketController = require('../controllers/ticket.controller');
 const { authMiddleware } = require('../middleware/auth.middleware');
 const validate = require('../middleware/validate.middleware');
 const { updateEventSchema } = require('../validators/event.validator');
@@ -41,6 +42,10 @@ router.get('/:id/ticket-types', ticketTypeController.getTicketTypesForEvent);
 // --- Event Bookings Route (Organizer) ---
 // GET /api/events/:id/bookings — List all bookings for an event (owner or staff)
 router.get('/:id/bookings', authMiddleware, bookingController.getEventBookings);
+
+// --- Event Tickets Route (Organizer) ---
+// GET /api/events/:id/tickets — List all generated tickets for an event (owner or staff)
+router.get('/:id/tickets', authMiddleware, ticketController.getEventTickets);
 
 // --- Public Single Event Detail Route ---
 // GET /api/events/:id — Fetch single public event (must be published)

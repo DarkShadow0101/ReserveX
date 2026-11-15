@@ -9,6 +9,8 @@ const organizationRoutes = require('./routes/organization.routes');
 const eventRoutes = require('./routes/event.routes');
 const ticketTypeRoutes = require('./routes/ticketType.routes');
 const bookingRoutes = require('./routes/booking.routes');
+const paymentRoutes = require('./routes/payment.routes');
+const ticketRoutes = require('./routes/ticket.routes');
 const AppError = require('./utils/errors');
 const errorHandler = require('./middleware/error.middleware');
 
@@ -25,8 +27,14 @@ app.use(
   })
 );
 
-// Parse incoming JSON bodies and cookies
-app.use(express.json());
+// Parse incoming JSON bodies (capturing rawBody for webhook cryptographic verification) and cookies
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    }
+  })
+);
 app.use(cookieParser());
 
 // Root test route
@@ -41,6 +49,8 @@ app.use('/api/organizations', organizationRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/ticket-types', ticketTypeRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/tickets', ticketRoutes);
 
 // 404 Catch-All for unknown routes (must come AFTER all valid routes)
 app.use((req, res, next) => {
