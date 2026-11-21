@@ -19,9 +19,13 @@ const webhookEventSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['PROCESSED', 'FAILED', 'IGNORED'],
-      default: 'PROCESSED',
+      enum: ['PROCESSING', 'PROCESSED', 'FAILED', 'IGNORED'],
+      default: 'PROCESSING',
       index: true
+    },
+    attempts: {
+      type: Number,
+      default: 1
     },
     errorMessage: {
       type: String,
@@ -29,7 +33,7 @@ const webhookEventSchema = new mongoose.Schema(
     },
     processedAt: {
       type: Date,
-      default: Date.now
+      default: null
     }
   },
   {

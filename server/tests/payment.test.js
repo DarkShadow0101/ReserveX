@@ -15,6 +15,7 @@ const Booking = require('../src/models/booking.model');
 const Payment = require('../src/models/payment.model');
 const Ticket = require('../src/models/ticket.model');
 const WebhookEvent = require('../src/models/webhookEvent.model');
+const ticketService = require('../src/services/ticket.service');
 
 jest.setTimeout(35000);
 
@@ -194,6 +195,46 @@ describe('Payments & Razorpay Integration API (/api/payments)', () => {
       expect(res.body.message).toContain('Invalid payment signature');
     });
 
+    it('should reject verification of unknown or untrusted order with 404', async () => {
+      const unknownOrderId = `order_untrusted_${Date.now()}`;
+      const unknownPaymentId = `pay_untrusted_${Date.now()}`;
+      const validSig = generateValidPaymentSignature(unknownOrderId, unknownPaymentId);
+
+      const res = await request(app)
+        .post('/api/payments/verify')
+        .set('Authorization', `Bearer ${customer.token}`)
+        .send({
+          bookingId,
+          razorpayOrderId: unknownOrderId,
+          razorpayPaymentId: unknownPaymentId,
+          razorpaySignature: validSig
+        });
+
+      expect(res.statusCode).toBe(404);
+      expect(res.body.message).toContain('Payment order not found or untrusted');
+
+      // Verify no rogue payment was created
+      const roguePayment = await Payment.findOne({ razorpayOrderId: unknownOrderId });
+      expect(roguePayment).toBeNull();
+    });
+
+    it('should reject verification if payment order belongs to another user with 403', async () => {
+      const validSig = generateValidPaymentSignature(orderId, fakePaymentId);
+
+      const res = await request(app)
+        .post('/api/payments/verify')
+        .set('Authorization', `Bearer ${outsider.token}`)
+        .send({
+          bookingId,
+          razorpayOrderId: orderId,
+          razorpayPaymentId: fakePaymentId,
+          razorpaySignature: validSig
+        });
+
+      expect(res.statusCode).toBe(403);
+      expect(res.body.message).toContain('does not belong to you');
+    });
+
     it('should verify valid HMAC signature, capture payment, confirm booking, and generate tickets with 200', async () => {
       const validSig = generateValidPaymentSignature(orderId, fakePaymentId);
 
@@ -276,6 +317,120 @@ describe('Payments & Razorpay Integration API (/api/payments)', () => {
       expect(secondRes.statusCode).toBe(200);
       expect(secondRes.body.data.status).toBe('ignored');
       expect(secondRes.body.data.message).toContain('already processed');
+    });
+
+    it('should mark WebhookEvent as FAILED on business error and allow retry to succeed when re-delivered', async () => {
+      // Create a fresh booking hold and payment order to test failure recovery
+      const holdRes = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${customer.token}`)
+        .send({
+          eventId,
+          items: [{ ticketTypeId: ticketTier, quantity: 1 }]
+        });
+      expect(holdRes.statusCode).toBe(201);
+      const retryBookingId = holdRes.body.data.booking._id;
+
+      const orderRes = await request(app)
+        .post('/api/payments/create-order')
+        .set('Authorization', `Bearer ${customer.token}`)
+        .send({ bookingId: retryBookingId });
+      expect(orderRes.statusCode).toBe(200);
+      const retryOrderId = orderRes.body.data.order.orderId;
+
+      const webhookEventId = `evt_fail_retry_${Date.now()}`;
+      const payloadObj = {
+        event: 'payment.captured',
+        event_id: webhookEventId,
+        payload: {
+          payment: {
+            entity: {
+              id: `pay_retry_${Date.now()}`,
+              order_id: retryOrderId,
+              status: 'captured'
+            }
+          }
+        }
+      };
+      const payloadString = JSON.stringify(payloadObj);
+      const validSig = generateWebhookSignature(payloadString);
+
+      // Simulate transient failure during ticket generation on 1st webhook delivery
+      const ticketSpy = jest.spyOn(ticketService, 'generateTicketsForBooking')
+        .mockRejectedValueOnce(new Error('Simulated transient ticket generation failure'));
+
+      // First delivery: must fail with 500, recorded as FAILED
+      const failRes = await request(app)
+        .post('/api/payments/webhook')
+        .set('x-razorpay-signature', validSig)
+        .set('Content-Type', 'application/json')
+        .send(payloadString);
+
+      expect(failRes.statusCode).toBe(500);
+
+      const failedDoc = await WebhookEvent.findOne({ eventId: webhookEventId });
+      expect(failedDoc).not.toBeNull();
+      expect(failedDoc.status).toBe('FAILED');
+      expect(failedDoc.errorMessage).toContain('Simulated transient ticket generation failure');
+
+      ticketSpy.mockRestore();
+
+      // Gateway retries webhook: must now succeed with 200 and transition status to PROCESSED
+      const retryRes = await request(app)
+        .post('/api/payments/webhook')
+        .set('x-razorpay-signature', validSig)
+        .set('Content-Type', 'application/json')
+        .send(payloadString);
+
+      expect(retryRes.statusCode).toBe(200);
+      expect(retryRes.body.data.status).toBe('processed');
+
+      const processedDoc = await WebhookEvent.findOne({ eventId: webhookEventId });
+      expect(processedDoc.status).toBe('PROCESSED');
+      expect(processedDoc.attempts).toBe(2);
+      expect(processedDoc.errorMessage).toBeNull();
+    });
+
+    it('should handle concurrent deliveries of the same webhook without errors', async () => {
+      const webhookEventId = `evt_concurrent_${Date.now()}`;
+      const payloadObj = {
+        event: 'payment.failed',
+        event_id: webhookEventId,
+        payload: {
+          payment: {
+            entity: {
+              id: `pay_conc_${Date.now()}`,
+              order_id: `order_fake_${Date.now()}`,
+              error_description: 'Card declined'
+            }
+          }
+        }
+      };
+      const payloadString = JSON.stringify(payloadObj);
+      const validSig = generateWebhookSignature(payloadString);
+
+      // Fire 2 concurrent deliveries of the exact same event
+      const [resA, resB] = await Promise.all([
+        request(app)
+          .post('/api/payments/webhook')
+          .set('x-razorpay-signature', validSig)
+          .set('Content-Type', 'application/json')
+          .send(payloadString),
+        request(app)
+          .post('/api/payments/webhook')
+          .set('x-razorpay-signature', validSig)
+          .set('Content-Type', 'application/json')
+          .send(payloadString)
+      ]);
+
+      // Both must return 200 without duplicate key crashes
+      expect(resA.statusCode).toBe(200);
+      expect(resB.statusCode).toBe(200);
+
+      const statuses = [resA.body.data.status, resB.body.data.status];
+      expect(statuses).toContain('processed');
+      // The other concurrent request must be ignored (either in-flight or already processed)
+      expect(statuses).toContain('ignored');
     });
   });
 });

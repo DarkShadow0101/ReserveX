@@ -109,17 +109,35 @@ async function verifyPayment(userId, { bookingId, razorpayOrderId, razorpayPayme
 
   try {
     await session.withTransaction(async () => {
-      // Find or update payment record
-      let payment = await Payment.findOne({ razorpayOrderId }).session(session);
+      // Find trusted payment record created during createPaymentOrder
+      const payment = await Payment.findOne({ razorpayOrderId }).session(session);
+
       if (!payment) {
-        payment = new Payment({
-          booking: bookingId,
-          user: userId,
-          razorpayOrderId,
-          amount: 0,
-          currency: 'INR',
-          status: 'CAPTURED'
-        });
+        throw new AppError('Payment order not found or untrusted. Please initiate payment through checkout.', 404);
+      }
+
+      if (payment.user.toString() !== userId.toString()) {
+        throw new AppError('Forbidden: This payment order does not belong to you', 403);
+      }
+
+      if (bookingId && payment.booking.toString() !== bookingId.toString()) {
+        throw new AppError('Payment order does not match the provided booking reservation', 400);
+      }
+
+      // If already captured (idempotent retry), return existing booking & tickets
+      if (payment.status === 'CAPTURED') {
+        const confirmedBooking = await Booking.findById(payment.booking).session(session);
+        const tickets = await ticketService.getTicketsForBooking(payment.booking, session);
+        result = {
+          booking: confirmedBooking,
+          payment,
+          tickets
+        };
+        return;
+      }
+
+      if (payment.status !== 'CREATED') {
+        throw new AppError(`Cannot verify payment in status "${payment.status}"`, 400);
       }
 
       payment.razorpayPaymentId = razorpayPaymentId;
@@ -129,7 +147,7 @@ async function verifyPayment(userId, { bookingId, razorpayOrderId, razorpayPayme
 
       // Confirm booking inside transaction (transitions hold count to sold count)
       const confirmedBooking = await bookingService.confirmBookingPayment(
-        bookingId,
+        payment.booking,
         razorpayPaymentId,
         session
       );
@@ -167,70 +185,131 @@ async function handleRazorpayWebhook(rawBody, signature, eventData) {
   const eventId = eventData.event_id || eventData.id || `evt_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
   const eventType = eventData.event;
 
-  // Idempotency check: If already processed, return immediately
-  const existingEvent = await WebhookEvent.findOne({ eventId });
-  if (existingEvent) {
-    return {
-      status: 'ignored',
-      message: 'Webhook event already processed'
-    };
+  // Concurrent delivery guard & deduplication:
+  // Register the webhook event initially with status 'PROCESSING'
+  let webhookDoc;
+  try {
+    webhookDoc = await WebhookEvent.create({
+      eventId,
+      eventType,
+      payload: eventData,
+      status: 'PROCESSING',
+      attempts: 1
+    });
+  } catch (err) {
+    if (err.code === 11000) {
+      // Record already exists for this eventId
+      const existing = await WebhookEvent.findOne({ eventId });
+      if (!existing) throw err;
+
+      if (existing.status === 'PROCESSED') {
+        return {
+          status: 'ignored',
+          message: 'Webhook event already processed'
+        };
+      }
+
+      if (existing.status === 'PROCESSING') {
+        return {
+          status: 'ignored',
+          message: 'Webhook event is currently being processed'
+        };
+      }
+
+      if (existing.status === 'FAILED') {
+        // Previous attempt failed; atomically claim it for retry
+        const claimed = await WebhookEvent.findOneAndUpdate(
+          { eventId, status: 'FAILED' },
+          {
+            $set: { status: 'PROCESSING', errorMessage: null },
+            $inc: { attempts: 1 }
+          },
+          { returnDocument: 'after' }
+        );
+
+        if (!claimed) {
+          // Another concurrent worker claimed the retry
+          return {
+            status: 'ignored',
+            message: 'Webhook event is currently being processed'
+          };
+        }
+        webhookDoc = claimed;
+      } else {
+        return {
+          status: 'ignored',
+          message: `Webhook event in status "${existing.status}"`
+        };
+      }
+    } else {
+      throw err;
+    }
   }
 
-  // Record webhook event in DB
-  await WebhookEvent.create({
-    eventId,
-    eventType,
-    payload: eventData,
-    status: 'PROCESSED'
-  });
+  // Execute business operations with error trapping
+  try {
+    // Handle payment.captured or order.paid
+    if (eventType === 'payment.captured' || eventType === 'order.paid') {
+      const paymentEntity = eventData.payload && eventData.payload.payment && eventData.payload.payment.entity;
+      if (paymentEntity && paymentEntity.order_id) {
+        const orderId = paymentEntity.order_id;
+        const paymentId = paymentEntity.id;
 
-  // Handle payment.captured or order.paid
-  if (eventType === 'payment.captured' || eventType === 'order.paid') {
-    const paymentEntity = eventData.payload && eventData.payload.payment && eventData.payload.payment.entity;
-    if (paymentEntity && paymentEntity.order_id) {
-      const orderId = paymentEntity.order_id;
-      const paymentId = paymentEntity.id;
+        const payment = await Payment.findOne({ razorpayOrderId: orderId });
+        if (payment && payment.status !== 'CAPTURED') {
+          const session = await mongoose.startSession();
+          try {
+            await session.withTransaction(async () => {
+              payment.status = 'CAPTURED';
+              payment.razorpayPaymentId = paymentId;
+              await payment.save({ session });
 
-      const payment = await Payment.findOne({ razorpayOrderId: orderId });
-      if (payment && payment.status !== 'CAPTURED') {
-        const session = await mongoose.startSession();
-        try {
-          await session.withTransaction(async () => {
-            payment.status = 'CAPTURED';
-            payment.razorpayPaymentId = paymentId;
-            await payment.save({ session });
-
-            const booking = await Booking.findById(payment.booking).session(session);
-            if (booking && booking.status === 'PENDING_PAYMENT') {
-              const confirmedBooking = await bookingService.confirmBookingPayment(booking._id, paymentId, session);
-              await ticketService.generateTicketsForBooking(confirmedBooking, session);
-            }
-          });
-        } finally {
-          await session.endSession();
+              const booking = await Booking.findById(payment.booking).session(session);
+              if (booking && booking.status === 'PENDING_PAYMENT') {
+                const confirmedBooking = await bookingService.confirmBookingPayment(booking._id, paymentId, session);
+                await ticketService.generateTicketsForBooking(confirmedBooking, session);
+              }
+            });
+          } finally {
+            await session.endSession();
+          }
         }
       }
     }
-  }
 
-  // Handle payment.failed
-  if (eventType === 'payment.failed') {
-    const paymentEntity = eventData.payload && eventData.payload.payment && eventData.payload.payment.entity;
-    if (paymentEntity && paymentEntity.order_id) {
-      await Payment.findOneAndUpdate(
-        { razorpayOrderId: paymentEntity.order_id },
-        {
-          status: 'FAILED',
-          failureReason: paymentEntity.error_description || 'Payment failed at bank gateway'
-        }
-      );
+    // Handle payment.failed
+    if (eventType === 'payment.failed') {
+      const paymentEntity = eventData.payload && eventData.payload.payment && eventData.payload.payment.entity;
+      if (paymentEntity && paymentEntity.order_id) {
+        await Payment.findOneAndUpdate(
+          { razorpayOrderId: paymentEntity.order_id },
+          {
+            status: 'FAILED',
+            failureReason: paymentEntity.error_description || 'Payment failed at bank gateway'
+          }
+        );
+      }
     }
-  }
 
-  return {
-    status: 'processed',
-    eventType
-  };
+    // Mark event as PROCESSED only after business operations succeed
+    await WebhookEvent.findByIdAndUpdate(webhookDoc._id, {
+      status: 'PROCESSED',
+      processedAt: new Date(),
+      errorMessage: null
+    });
+
+    return {
+      status: 'processed',
+      eventType
+    };
+  } catch (error) {
+    // Record failure in WebhookEvent so gateway retries can be safely reprocessed
+    await WebhookEvent.findByIdAndUpdate(webhookDoc._id, {
+      status: 'FAILED',
+      errorMessage: error.message
+    });
+    throw error;
+  }
 }
 
 module.exports = {
