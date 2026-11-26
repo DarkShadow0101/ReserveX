@@ -8,7 +8,11 @@ export default function CustomerLayout() {
   const isHome = location.pathname === '/';
 
   return (
-    <div className="min-h-screen flex flex-col bg-warm-50 text-slate-900">
+    <div
+      className={`min-h-screen flex flex-col ${
+        isHome ? 'bg-brand-navy text-white' : 'bg-warm-50 text-slate-900'
+      }`}
+    >
       <Navbar transparent={isHome} />
       <main className="flex-1">
         <Outlet />

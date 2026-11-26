@@ -17,7 +17,7 @@ export default function Navbar({ transparent = false }) {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 40);
+      setIsScrolled(window.scrollY > 36);
     };
 
     handleScroll();
@@ -31,11 +31,11 @@ export default function Navbar({ transparent = false }) {
     navigate('/');
   };
 
-  // Transparent gradient over initial hero, smooth transition to dark glass surface on scroll
+  // Transparent integration over the initial dark hero; transitions smoothly to dark glass on scroll
   const navBg =
     transparent && isHomePage && !isScrolled
-      ? 'bg-gradient-to-b from-brand-navy/75 via-brand-navy/35 to-transparent text-white'
-      : 'bg-brand-navy/90 backdrop-blur-xl text-white border-b border-white/10 shadow-lg';
+      ? 'bg-transparent text-white border-b border-transparent'
+      : 'bg-brand-navy/85 backdrop-blur-xl text-white border-b border-white/10 shadow-lg';
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${navBg}`}>
@@ -47,9 +47,9 @@ export default function Navbar({ transparent = false }) {
           <nav className="hidden md:flex items-center gap-7 text-sm font-medium">
             <Link
               to="/events"
-              className="text-slate-200 hover:text-white transition-colors duration-150 flex items-center gap-1"
+              className="text-slate-200 hover:text-white transition-colors duration-150"
             >
-              Explore <ChevronDown className="w-3.5 h-3.5 opacity-70" />
+              Explore Events
             </Link>
             <a
               href="#categories"
@@ -68,11 +68,17 @@ export default function Navbar({ transparent = false }) {
             >
               My Tickets
             </Link>
+            <Link
+              to="/organizer"
+              className="text-slate-200 hover:text-white transition-colors duration-150"
+            >
+              For Organizers
+            </Link>
           </nav>
         </div>
 
         {/* Right Action Icons & Auth */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-3.5">
           <button
             type="button"
             onClick={() => navigate('/events')}
@@ -148,12 +154,12 @@ export default function Navbar({ transparent = false }) {
             <div className="flex items-center gap-3">
               <Link
                 to="/login"
-                className="text-sm font-semibold text-slate-200 hover:text-white px-3.5 py-2 rounded-full hover:bg-white/10 transition-colors"
+                className="text-sm font-semibold text-white/90 hover:text-white px-4 py-2 rounded-full border border-white/20 bg-white/[0.04] hover:bg-white/10 transition-all"
               >
                 Sign In
               </Link>
               <Link to="/register">
-                <Button variant="primary" size="pill" className="bg-brand-purple hover:bg-indigo-600 shadow-md px-5">
+                <Button variant="primary" size="pill" className="bg-brand-purple hover:bg-indigo-500 shadow-glow px-5">
                   Get Started
                 </Button>
               </Link>
@@ -196,7 +202,7 @@ export default function Navbar({ transparent = false }) {
             onClick={() => setMobileMenuOpen(false)}
             className="block py-2 text-brand-purple font-semibold"
           >
-            Organizer Dashboard
+            For Organizers
           </Link>
 
           <div className="pt-3 border-t border-slate-800">
