@@ -95,6 +95,8 @@ export default function Checkout() {
           order_id: orderData.orderId,
           handler: async function (response) {
             try {
+              setProcessingPayment(true);
+              setError(null);
               const verifyRes = await paymentsApi.verifyPayment({
                 bookingId,
                 razorpayOrderId: response.razorpay_order_id,
@@ -104,9 +106,32 @@ export default function Checkout() {
 
               if (verifyRes.success) {
                 setSuccess(true);
+                return;
               }
             } catch (vErr) {
+              // Refetch booking status in case webhook confirmed the booking concurrently
+              try {
+                const refreshed = await bookingsApi.getBookingById(bookingId);
+                const latestBooking = refreshed.data?.booking;
+                if (latestBooking) {
+                  setBooking(latestBooking);
+                  if (latestBooking.status === 'CONFIRMED') {
+                    setError(null);
+                    setSuccess(true);
+                    return;
+                  }
+                }
+              } catch {
+                // Ignore secondary fetch error and surface original verification error
+              }
               setError(extractErrorMessage(vErr, 'Payment verification failed'));
+            } finally {
+              setProcessingPayment(false);
+            }
+          },
+          modal: {
+            ondismiss: function () {
+              setProcessingPayment(false);
             }
           },
           prefill: {
@@ -120,17 +145,19 @@ export default function Checkout() {
 
         const rzp = new window.Razorpay(options);
         rzp.on('payment.failed', function (resp) {
+          setProcessingPayment(false);
           setError(`Payment Failed: ${resp.error.description || 'Card/UPI declined'}`);
         });
         rzp.open();
+        return;
       } else {
         setError(
           'Razorpay checkout is not configured. Set valid VITE_RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET test keys in your environment to complete payment.'
         );
+        setProcessingPayment(false);
       }
     } catch (err) {
       setError(extractErrorMessage(err, 'Payment processing encountered an error'));
-    } finally {
       setProcessingPayment(false);
     }
   };

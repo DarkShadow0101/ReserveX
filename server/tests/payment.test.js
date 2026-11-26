@@ -432,5 +432,73 @@ describe('Payments & Razorpay Integration API (/api/payments)', () => {
       // The other concurrent request must be ignored (either in-flight or already processed)
       expect(statuses).toContain('ignored');
     });
+
+    it('should handle concurrent POST /verify and payment.captured webhook without 500s or duplicate tickets', async () => {
+      const holdRes = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${customer.token}`)
+        .send({
+          eventId,
+          items: [{ ticketTypeId: ticketTier, quantity: 2 }]
+        });
+      expect(holdRes.statusCode).toBe(201);
+      const raceBookingId = holdRes.body.data.booking._id;
+
+      const orderRes = await request(app)
+        .post('/api/payments/create-order')
+        .set('Authorization', `Bearer ${customer.token}`)
+        .send({ bookingId: raceBookingId });
+      expect(orderRes.statusCode).toBe(200);
+      const raceOrderId = orderRes.body.data.order.orderId;
+
+      const racePaymentId = `pay_race_${Date.now()}`;
+      const validPaymentSig = generateValidPaymentSignature(raceOrderId, racePaymentId);
+
+      const webhookPayload = JSON.stringify({
+        event: 'payment.captured',
+        event_id: `evt_race_${Date.now()}`,
+        payload: {
+          payment: {
+            entity: {
+              id: racePaymentId,
+              order_id: raceOrderId,
+              status: 'captured'
+            }
+          }
+        }
+      });
+      const validWebhookSig = generateWebhookSignature(webhookPayload);
+
+      // Fire frontend verification and Razorpay webhook concurrently
+      const [verifyRes, webhookRes] = await Promise.all([
+        request(app)
+          .post('/api/payments/verify')
+          .set('Authorization', `Bearer ${customer.token}`)
+          .send({
+            bookingId: raceBookingId,
+            razorpayOrderId: raceOrderId,
+            razorpayPaymentId: racePaymentId,
+            razorpaySignature: validPaymentSig
+          }),
+        request(app)
+          .post('/api/payments/webhook')
+          .set('x-razorpay-signature', validWebhookSig)
+          .set('Content-Type', 'application/json')
+          .send(webhookPayload)
+      ]);
+
+      expect(verifyRes.statusCode).toBe(200);
+      expect(webhookRes.statusCode).toBe(200);
+      expect(verifyRes.body.data.booking.status).toBe('CONFIRMED');
+      expect(verifyRes.body.data.tickets).toHaveLength(2);
+
+      // Verify exactly 2 tickets exist in DB (no duplicates)
+      const ticketsInDb = await Ticket.find({ booking: raceBookingId });
+      expect(ticketsInDb).toHaveLength(2);
+
+      // Verify booking is confirmed once
+      const bookingInDb = await Booking.findById(raceBookingId);
+      expect(bookingInDb.status).toBe('CONFIRMED');
+    });
   });
 });

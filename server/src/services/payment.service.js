@@ -124,7 +124,7 @@ async function verifyPayment(userId, { bookingId, razorpayOrderId, razorpayPayme
         throw new AppError('Payment order does not match the provided booking reservation', 400);
       }
 
-      // If already captured (idempotent retry), return existing booking & tickets
+      // If already captured (idempotent retry or concurrent webhook), return existing booking & tickets
       if (payment.status === 'CAPTURED') {
         const confirmedBooking = await Booking.findById(payment.booking).session(session);
         const tickets = await ticketService.getTicketsForBooking(payment.booking, session);
@@ -161,6 +161,35 @@ async function verifyPayment(userId, { bookingId, razorpayOrderId, razorpayPayme
         tickets
       };
     });
+  } catch (err) {
+    // Handle concurrent MongoDB WriteConflict / TransientTransactionError when webhook captured simultaneously
+    const isTransientConflict =
+      err.code === 112 ||
+      err.code === 11000 ||
+      (typeof err.hasErrorLabel === 'function' && err.hasErrorLabel('TransientTransactionError'));
+
+    if (isTransientConflict) {
+      console.warn(
+        `[verifyPayment] Concurrent transaction conflict for order ${razorpayOrderId} (code=${err.code}); checking final state.`
+      );
+      const payment = await Payment.findOne({ razorpayOrderId });
+      if (payment && payment.user.toString() === userId.toString() && payment.status === 'CAPTURED') {
+        const confirmedBooking = await Booking.findById(payment.booking);
+        if (confirmedBooking && confirmedBooking.status === 'CONFIRMED') {
+          const tickets = await ticketService.getTicketsForBooking(payment.booking);
+          return {
+            booking: confirmedBooking,
+            payment,
+            tickets
+          };
+        }
+      }
+    }
+
+    console.error(
+      `[verifyPayment] Error for order=${razorpayOrderId} booking=${bookingId}: ${err.name} (${err.code || err.statusCode || 500}) ${err.message}`
+    );
+    throw err;
   } finally {
     await session.endSession();
   }
@@ -255,24 +284,43 @@ async function handleRazorpayWebhook(rawBody, signature, eventData) {
         const orderId = paymentEntity.order_id;
         const paymentId = paymentEntity.id;
 
-        const payment = await Payment.findOne({ razorpayOrderId: orderId });
-        if (payment && payment.status !== 'CAPTURED') {
-          const session = await mongoose.startSession();
-          try {
-            await session.withTransaction(async () => {
-              payment.status = 'CAPTURED';
-              payment.razorpayPaymentId = paymentId;
-              await payment.save({ session });
+        const session = await mongoose.startSession();
+        try {
+          await session.withTransaction(async () => {
+            const payment = await Payment.findOne({ razorpayOrderId: orderId }).session(session);
+            if (!payment || payment.status === 'CAPTURED') {
+              return;
+            }
 
-              const booking = await Booking.findById(payment.booking).session(session);
-              if (booking && booking.status === 'PENDING_PAYMENT') {
-                const confirmedBooking = await bookingService.confirmBookingPayment(booking._id, paymentId, session);
-                await ticketService.generateTicketsForBooking(confirmedBooking, session);
-              }
-            });
-          } finally {
-            await session.endSession();
+            payment.status = 'CAPTURED';
+            payment.razorpayPaymentId = paymentId;
+            await payment.save({ session });
+
+            const booking = await Booking.findById(payment.booking).session(session);
+            if (booking && booking.status === 'PENDING_PAYMENT') {
+              const confirmedBooking = await bookingService.confirmBookingPayment(booking._id, paymentId, session);
+              await ticketService.generateTicketsForBooking(confirmedBooking, session);
+            }
+          });
+        } catch (txErr) {
+          // If verifyPayment committed concurrently and caused a transient conflict, check if already captured
+          const isTransientConflict =
+            txErr.code === 112 ||
+            txErr.code === 11000 ||
+            (typeof txErr.hasErrorLabel === 'function' && txErr.hasErrorLabel('TransientTransactionError'));
+
+          if (isTransientConflict) {
+            const settled = await Payment.findOne({ razorpayOrderId: orderId });
+            if (settled && settled.status === 'CAPTURED') {
+              console.warn(`[webhook] Concurrent capture already completed for order ${orderId}`);
+            } else {
+              throw txErr;
+            }
+          } else {
+            throw txErr;
           }
+        } finally {
+          await session.endSession();
         }
       }
     }

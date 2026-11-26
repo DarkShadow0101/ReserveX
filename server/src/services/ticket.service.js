@@ -59,10 +59,20 @@ function verifyQrToken(token) {
   }
 }
 
-// 1. Generate tickets for a confirmed booking
+// 1. Generate tickets for a confirmed booking (idempotent)
 async function generateTicketsForBooking(booking, session = null) {
+  const existingQuery = Ticket.find({ booking: booking._id });
+  if (session) existingQuery.session(session);
+  const existingTickets = await existingQuery;
+
+  if (existingTickets.length > 0) {
+    return existingTickets;
+  }
+
   const customerId = booking.user._id || booking.user;
-  const user = await User.findById(customerId);
+  const userQuery = User.findById(customerId);
+  if (session) userQuery.session(session);
+  const user = await userQuery;
 
   const customerName = user ? user.fullName : 'Valued Attendee';
   const customerEmail = user ? user.email : 'attendee@reservex.local';
