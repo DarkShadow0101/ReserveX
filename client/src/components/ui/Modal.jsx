@@ -32,14 +32,14 @@ export default function Modal({
   const isDark = theme === 'dark';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       <div
-        className={`relative w-full ${maxWidth} rounded-3xl shadow-2xl border overflow-hidden z-10 ${
+        className={`relative w-full ${maxWidth} max-h-[90vh] flex flex-col rounded-3xl shadow-2xl border overflow-hidden z-10 ${
           isDark
             ? 'bg-[#12172A] border-white/15 text-white'
             : 'bg-white border-slate-100 text-slate-900'
@@ -47,11 +47,11 @@ export default function Modal({
       >
         {(title || showClose) && (
           <div
-            className={`flex items-center justify-between px-6 py-5 border-b ${
+            className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${
               isDark ? 'border-white/10 bg-white/[0.03]' : 'border-slate-100 bg-slate-50/50'
             }`}
           >
-            <div>
+            <div className="pr-4">
               {title && (
                 <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                   {title}
@@ -68,7 +68,7 @@ export default function Modal({
                 type="button"
                 onClick={onClose}
                 aria-label="Close modal"
-                className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+                className={`p-1.5 rounded-full transition-colors cursor-pointer shrink-0 ${
                   isDark
                     ? 'text-slate-400 hover:text-white hover:bg-white/10'
                     : 'text-slate-400 hover:text-slate-700 hover:bg-slate-200/60'
@@ -80,7 +80,7 @@ export default function Modal({
           </div>
         )}
 
-        <div className="p-6">{children}</div>
+        <div className="p-5 sm:p-6 overflow-y-auto">{children}</div>
       </div>
     </div>
   );

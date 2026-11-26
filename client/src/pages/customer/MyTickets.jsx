@@ -190,55 +190,73 @@ export default function MyTickets() {
         isOpen={!!selectedTicket}
         onClose={() => setSelectedTicket(null)}
         title="Event Gate Pass"
-        description="Present this QR code at the event entrance for fast-track admission."
-        maxWidth="max-w-md"
+        description="Present this QR code at the venue entrance for instant admission."
+        maxWidth="max-w-sm"
         theme="dark"
       >
         {selectedTicket && (
-          <div className="space-y-6 text-center">
-            <div className="flex justify-center">
-              <Badge variant={selectedTicket.status} theme="dark" dot={true} className="text-xs px-3 py-1">
-                {selectedTicket.status} TICKET
-              </Badge>
-            </div>
+          <div className="rounded-2xl bg-[#0B0F19] border border-white/10 overflow-hidden">
+            {/* Top QR Section */}
+            <div className="p-5 text-center space-y-4">
+              <div className="flex justify-center">
+                <Badge variant={selectedTicket.status} theme="dark" dot={true} className="text-[11px] px-3 py-1">
+                  {selectedTicket.status} TICKET
+                </Badge>
+              </div>
 
-            {/* High-contrast white QR pad inside dark pass modal for reliable scanning */}
-            <div className="p-5 bg-white rounded-3xl inline-block shadow-xl">
-              <QRCodeSVG
-                value={selectedTicket.qrToken || 'INVALID_TOKEN'}
-                size={210}
-                level="H"
-                includeMargin={true}
-              />
-              <p className="font-mono text-xs text-slate-600 font-bold mt-2 tracking-wider">
+              {/* High-contrast white QR pad for reliable gate scanning */}
+              <div className="p-3.5 bg-white rounded-2xl inline-block shadow-lg">
+                <QRCodeSVG
+                  value={selectedTicket.qrToken || 'INVALID_TOKEN'}
+                  size={172}
+                  level="H"
+                  includeMargin={true}
+                />
+              </div>
+
+              <p className="font-mono text-xs text-indigo-300 font-bold tracking-wider">
                 {selectedTicket.ticketNumber}
               </p>
             </div>
 
-            <div className="text-left bg-white/[0.04] border border-white/10 rounded-2xl p-4 space-y-2.5 text-xs">
-              <div className="flex justify-between gap-2">
-                <span className="text-slate-400">Event:</span>
-                <span className="font-bold text-white text-right">{selectedTicket.event?.title}</span>
-              </div>
-              <div className="flex justify-between gap-2">
-                <span className="text-slate-400">Tier:</span>
-                <span className="font-semibold text-indigo-300">{selectedTicket.tierName}</span>
-              </div>
-              <div className="flex justify-between gap-2">
-                <span className="text-slate-400">Holder:</span>
-                <span className="font-semibold text-white">{selectedTicket.customerName}</span>
-              </div>
-              <div className="flex justify-between gap-2">
-                <span className="text-slate-400">Date:</span>
-                <span className="font-semibold text-white">
-                  {formatEventDate(selectedTicket.event?.startsAt)}
-                </span>
-              </div>
+            {/* Perforated Ticket Stub Divider */}
+            <div className="relative flex items-center my-1">
+              <span className="w-4 h-4 rounded-full bg-[#12172A] border-r border-white/10 -ml-2 shrink-0" />
+              <div className="flex-1 border-t border-dashed border-white/15 mx-1" />
+              <span className="w-4 h-4 rounded-full bg-[#12172A] border-l border-white/10 -mr-2 shrink-0" />
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Cryptographically signed QR token</span>
+            {/* Bottom Event Stub */}
+            <div className="p-5 space-y-3">
+              <div className="text-left space-y-2 text-xs">
+                <div className="flex justify-between gap-3">
+                  <span className="text-slate-400">Event</span>
+                  <span className="font-bold text-white text-right truncate">
+                    {selectedTicket.event?.title}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-slate-400">Tier</span>
+                  <span className="font-bold text-indigo-300">{selectedTicket.tierName}</span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-slate-400">Holder</span>
+                  <span className="font-semibold text-white truncate">
+                    {selectedTicket.customerName}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-slate-400">Date</span>
+                  <span className="font-semibold text-white">
+                    {formatEventDate(selectedTicket.event?.startsAt, 'EEE, dd MMM yyyy • hh:mm a')}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-white/10 flex items-center justify-center gap-2 text-[11px] text-slate-400">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>Cryptographically signed QR token</span>
+              </div>
             </div>
           </div>
         )}
