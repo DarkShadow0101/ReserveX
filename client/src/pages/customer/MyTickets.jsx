@@ -190,70 +190,71 @@ export default function MyTickets() {
         isOpen={!!selectedTicket}
         onClose={() => setSelectedTicket(null)}
         title="Event Gate Pass"
-        description="Present this QR code at the venue entrance for instant admission."
-        maxWidth="max-w-sm"
+        description="Present this QR code at the entrance."
+        maxWidth="max-w-xs sm:max-w-sm"
         theme="dark"
       >
         {selectedTicket && (
           <div className="rounded-2xl bg-[#0B0F19] border border-white/10 overflow-hidden">
             {/* Top QR Section */}
-            <div className="p-5 text-center space-y-4">
+            <div className="p-4 text-center space-y-2.5">
               <div className="flex justify-center">
-                <Badge variant={selectedTicket.status} theme="dark" dot={true} className="text-[11px] px-3 py-1">
+                <Badge variant={selectedTicket.status} theme="dark" dot={true} className="text-[10px] px-2.5 py-0.5">
                   {selectedTicket.status} TICKET
                 </Badge>
               </div>
 
-              {/* High-contrast white QR pad for reliable gate scanning */}
-              <div className="p-3.5 bg-white rounded-2xl inline-block shadow-lg">
+              <div className="p-2.5 bg-white rounded-2xl inline-block shadow-lg">
                 <QRCodeSVG
                   value={selectedTicket.qrToken || 'INVALID_TOKEN'}
-                  size={172}
+                  size={136}
                   level="H"
-                  includeMargin={true}
+                  includeMargin={false}
                 />
               </div>
 
-              <p className="font-mono text-xs text-indigo-300 font-bold tracking-wider">
+              <p className="font-mono text-[11px] text-indigo-300 font-bold tracking-wider">
                 {selectedTicket.ticketNumber}
               </p>
             </div>
 
             {/* Perforated Ticket Stub Divider */}
-            <div className="relative flex items-center my-1">
-              <span className="w-4 h-4 rounded-full bg-[#12172A] border-r border-white/10 -ml-2 shrink-0" />
+            <div className="relative flex items-center">
+              <span className="w-3.5 h-3.5 rounded-full bg-[#12172A] border-r border-white/10 -ml-2 shrink-0" />
               <div className="flex-1 border-t border-dashed border-white/15 mx-1" />
-              <span className="w-4 h-4 rounded-full bg-[#12172A] border-l border-white/10 -mr-2 shrink-0" />
+              <span className="w-3.5 h-3.5 rounded-full bg-[#12172A] border-l border-white/10 -mr-2 shrink-0" />
             </div>
 
-            {/* Bottom Event Stub */}
-            <div className="p-5 space-y-3">
-              <div className="text-left space-y-2 text-xs">
-                <div className="flex justify-between gap-3">
-                  <span className="text-slate-400">Event</span>
-                  <span className="font-bold text-white text-right truncate">
+            {/* Compact Event Stub */}
+            <div className="p-4 space-y-2.5">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-[11px]">
+                <div>
+                  <span className="text-slate-400 block">Event</span>
+                  <span className="font-bold text-white truncate block">
                     {selectedTicket.event?.title}
                   </span>
                 </div>
-                <div className="flex justify-between gap-3">
-                  <span className="text-slate-400">Tier</span>
-                  <span className="font-bold text-indigo-300">{selectedTicket.tierName}</span>
+                <div>
+                  <span className="text-slate-400 block">Tier</span>
+                  <span className="font-bold text-indigo-300 truncate block">
+                    {selectedTicket.tierName}
+                  </span>
                 </div>
-                <div className="flex justify-between gap-3">
-                  <span className="text-slate-400">Holder</span>
-                  <span className="font-semibold text-white truncate">
+                <div>
+                  <span className="text-slate-400 block">Holder</span>
+                  <span className="font-semibold text-white truncate block">
                     {selectedTicket.customerName}
                   </span>
                 </div>
-                <div className="flex justify-between gap-3">
-                  <span className="text-slate-400">Date</span>
-                  <span className="font-semibold text-white">
-                    {formatEventDate(selectedTicket.event?.startsAt, 'EEE, dd MMM yyyy • hh:mm a')}
+                <div>
+                  <span className="text-slate-400 block">Date</span>
+                  <span className="font-semibold text-white truncate block">
+                    {formatEventDate(selectedTicket.event?.startsAt, 'dd MMM, hh:mm a')}
                   </span>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-white/10 flex items-center justify-center gap-2 text-[11px] text-slate-400">
+              <div className="pt-2 border-t border-white/10 flex items-center justify-center gap-1.5 text-[10px] text-slate-400">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span>Cryptographically signed QR token</span>
               </div>
