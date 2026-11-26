@@ -1,4 +1,6 @@
+const jwt = require('jsonwebtoken');
 const ticketTypeService = require('../services/ticketType.service');
+const eventService = require('../services/event.service');
 
 // POST /api/events/:id/ticket-types (Organizer)
 async function createTicketType(req, res, next) {
@@ -20,8 +22,25 @@ async function createTicketType(req, res, next) {
 async function getTicketTypesForEvent(req, res, next) {
   try {
     const eventId = req.params.id;
-    // If request has logged-in user, could check if organizer, or pass query flag
-    const isOrganizer = req.query.manage === 'true' && !!req.user;
+    let isOrganizer = false;
+
+    if (req.query.manage === 'true') {
+      let token;
+      if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+        token = req.headers.authorization.split(' ')[1];
+      } else if (req.cookies && req.cookies.token) {
+        token = req.cookies.token;
+      }
+
+      if (token) {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.UserId || decoded.id;
+        // Verify this user actually belongs to the event's organization
+        await eventService.getEventForOrganizer(eventId, userId);
+        isOrganizer = true;
+      }
+    }
+
     const ticketTypes = await ticketTypeService.getTicketTypesForEvent(eventId, isOrganizer);
 
     res.status(200).json({

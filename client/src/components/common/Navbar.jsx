@@ -53,9 +53,13 @@ export default function Navbar({ transparent = false }) {
             </Link>
             <a
               href="#categories"
-              onClick={() => {
+              onClick={(e) => {
                 if (location.pathname !== '/') {
-                  navigate('/#categories');
+                  e.preventDefault();
+                  navigate('/');
+                  setTimeout(() => {
+                    document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' });
+                  }, 120);
                 }
               }}
               className="text-slate-200 hover:text-white transition-colors duration-150 flex items-center gap-1"

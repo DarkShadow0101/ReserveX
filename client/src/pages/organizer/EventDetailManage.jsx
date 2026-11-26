@@ -59,7 +59,7 @@ export default function EventDetailManage() {
       setError(null);
       const [evRes, tiersRes] = await Promise.all([
         eventsApi.getEventForOrganizer(id),
-        ticketTypesApi.getTicketTypesForEvent(id, true) // pass manage=true
+        ticketTypesApi.getTicketTypesForEvent(id, true)
       ]);
 
       const ev = evRes.data?.event;

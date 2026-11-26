@@ -5,7 +5,8 @@ import { useOrg } from '../../context/OrgContext';
 import { formatEventDate } from '../../utils/date';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Badge from '../../components/ui/Badge';
-import { Ticket, QrCode } from 'lucide-react';
+import SelectDropdown from '../../components/ui/SelectDropdown';
+import { Ticket, Calendar } from 'lucide-react';
 
 export default function TicketsManage() {
   const { activeOrgId } = useOrg();
@@ -71,18 +72,17 @@ export default function TicketsManage() {
         </div>
 
         {events.length > 0 && (
-          <div className="w-full sm:w-64">
-            <select
+          <div className="w-full sm:w-72">
+            <SelectDropdown
               value={selectedEventId}
-              onChange={(e) => setSelectedEventId(e.target.value)}
-              className="w-full bg-white border border-slate-200/90 rounded-2xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand-purple cursor-pointer shadow-sm"
-            >
-              {events.map((ev) => (
-                <option key={ev._id} value={ev._id}>
-                  {ev.title}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedEventId}
+              options={events.map((ev) => ({ value: ev._id, label: ev.title }))}
+              icon={Calendar}
+              theme="light"
+              variant="boxed"
+              menuAlign="right"
+              ariaLabel="Select event"
+            />
           </div>
         )}
       </div>

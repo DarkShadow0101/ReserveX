@@ -15,11 +15,12 @@ export default function OrganizerLayout() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newOrgName, setNewOrgName] = useState('');
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState(null);
 
   if (authLoading || orgLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <LoadingSpinner text="Connecting to ReserveX Organizer Network..." size="lg" />
+      <div className="min-h-screen flex items-center justify-center bg-brand-navy">
+        <LoadingSpinner theme="dark" text="Connecting to ReserveX Organizer Network..." size="lg" />
       </div>
     );
   }
@@ -36,9 +37,10 @@ export default function OrganizerLayout() {
       if (!newOrgName) return;
       try {
         setCreating(true);
+        setCreateError(null);
         await createOrganization({ name: newOrgName });
       } catch (err) {
-        alert(err.message || 'Could not create organization');
+        setCreateError(err.response?.data?.message || err.message || 'Could not create organization');
       } finally {
         setCreating(false);
       }
@@ -60,6 +62,11 @@ export default function OrganizerLayout() {
           </div>
 
           <form onSubmit={handleQuickCreate} className="space-y-4 text-left">
+            {createError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700">
+                {createError}
+              </div>
+            )}
             <div>
               <label className="block text-xs font-bold uppercase text-slate-600 mb-1">
                 Organization Name

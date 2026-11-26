@@ -6,7 +6,7 @@
 export function formatPaiseToINR(paise, showDecimals = false) {
   if (paise === undefined || paise === null || isNaN(paise)) return '₹0';
   const rupees = Number(paise) / 100;
-  
+
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
@@ -16,16 +16,16 @@ export function formatPaiseToINR(paise, showDecimals = false) {
 }
 
 export function formatPriceStarting(ticketTypes) {
+  // When ticketTypes are not included on a list endpoint response, avoid claiming "Free"
   if (!ticketTypes || !Array.isArray(ticketTypes) || ticketTypes.length === 0) {
-    return 'Free';
+    return 'View Tickets';
   }
-  
-  // Find minimum price among active ticket tiers
-  const activeTiers = ticketTypes.filter(t => t.isActive !== false);
+
+  const activeTiers = ticketTypes.filter((t) => t.isActive !== false);
   if (activeTiers.length === 0) return 'Sold Out';
 
-  const minPrice = Math.min(...activeTiers.map(t => Number(t.price || 0)));
+  const minPrice = Math.min(...activeTiers.map((t) => Number(t.price || 0)));
   if (minPrice === 0) return 'Free';
-  
+
   return `${formatPaiseToINR(minPrice)} onwards`;
 }

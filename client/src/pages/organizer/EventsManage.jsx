@@ -4,7 +4,7 @@ import { Plus, Calendar, MapPin, Search, Edit3, Eye, MoreHorizontal, ArrowUpRigh
 import { organizationsApi } from '../../api/organizations.api';
 import { useOrg } from '../../context/OrgContext';
 import { formatEventDate } from '../../utils/date';
-import { getEventImage } from '../../mocks/eventImages';
+import { getEventImage, FALLBACK_EVENT_IMAGE } from '../../mocks/eventImages';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
@@ -122,6 +122,9 @@ export default function EventsManage() {
                         <img
                           src={img}
                           alt={ev.title}
+                          onError={(e) => {
+                            e.currentTarget.src = FALLBACK_EVENT_IMAGE;
+                          }}
                           className="w-12 h-12 rounded-2xl object-cover shrink-0 shadow-sm"
                         />
                         <div>

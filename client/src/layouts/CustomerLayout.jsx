@@ -8,13 +8,22 @@ export default function CustomerLayout() {
   const isHome = location.pathname === '/';
 
   return (
-    <div
-      className={`min-h-screen flex flex-col ${
-        isHome ? 'bg-brand-navy text-white' : 'bg-warm-50 text-slate-900'
-      }`}
-    >
+    <div className="min-h-screen flex flex-col bg-brand-navy text-white relative overflow-x-hidden">
+      {/* Subtle atmospheric lighting for inner customer pages (Home provides its own full backdrop) */}
+      {!isHome && (
+        <div
+          className="pointer-events-none fixed inset-0 z-0"
+          style={{
+            background: [
+              'radial-gradient(circle at 15% 15%, rgba(91, 76, 242, 0.16), transparent 40%)',
+              'radial-gradient(circle at 85% 70%, rgba(255, 90, 95, 0.08), transparent 42%)'
+            ].join(', ')
+          }}
+        />
+      )}
+
       <Navbar transparent={isHome} />
-      <main className="flex-1">
+      <main className="flex-1 relative z-10">
         <Outlet />
       </main>
       <Footer />

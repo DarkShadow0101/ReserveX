@@ -8,6 +8,7 @@ import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
+import SelectDropdown from '../../components/ui/SelectDropdown';
 
 export default function TeamManage() {
   const { activeOrgId, isOwner } = useOrg();
@@ -195,17 +196,21 @@ export default function TeamManage() {
           />
 
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-600 mb-1">
+            <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
               Role Permission
             </label>
-            <select
+            <SelectDropdown
               value={memberRole}
-              onChange={(e) => setMemberRole(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 font-semibold focus:outline-none focus:border-brand-purple cursor-pointer"
-            >
-              <option value="staff">Staff (Event creation, editing, QR check-in)</option>
-              <option value="owner">Owner (Full admin & billing control)</option>
-            </select>
+              onChange={setMemberRole}
+              options={[
+                { value: 'staff', label: 'Staff (Event creation, editing, QR check-in)' },
+                { value: 'owner', label: 'Owner (Full admin & billing control)' }
+              ]}
+              icon={Shield}
+              theme="light"
+              variant="boxed"
+              ariaLabel="Select member role"
+            />
           </div>
 
           <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">

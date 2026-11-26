@@ -94,7 +94,7 @@ export default function CreateEvent() {
           <Input
             label="Event Title"
             required
-            placeholder="e.g. Sunburn Festival Goa 2025"
+            placeholder="e.g. Sunburn Festival Goa"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />

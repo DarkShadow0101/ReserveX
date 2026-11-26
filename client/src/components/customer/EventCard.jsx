@@ -7,7 +7,7 @@ import { getEventImage, FALLBACK_EVENT_IMAGE } from '../../mocks/eventImages';
 
 function getCompactPriceLabel(ticketTypes) {
   if (!ticketTypes || !Array.isArray(ticketTypes) || ticketTypes.length === 0) {
-    return 'Free';
+    return 'View Tiers';
   }
   const activeTiers = ticketTypes.filter((t) => t.isActive !== false);
   if (activeTiers.length === 0) return 'Sold Out';
@@ -172,7 +172,96 @@ export default function EventCard({ event, variant = 'default' }) {
     );
   }
 
-  // 3. DEFAULT CARD (Preserved for EventsExplore.jsx and other light surfaces)
+  // 3. DARK GRID CARD (Used in EventsExplore on the continuous dark canvas)
+  if (variant === 'dark-grid') {
+    return (
+      <article className="group relative bg-[#12172A]/90 rounded-2xl overflow-hidden border border-white/10 hover:border-indigo-400/50 shadow-[0_14px_35px_rgba(0,0,0,0.35)] hover:-translate-y-1 transition-all duration-300 flex flex-col">
+        <Link to={eventHref} className="relative aspect-[16/10] overflow-hidden bg-brand-navy block">
+          <img
+            src={imgSrc}
+            alt={event.title || 'Event cover'}
+            onError={handleImageError}
+            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#12172A] via-brand-navy/25 to-black/25" />
+
+          <div className="absolute top-3.5 left-3.5 bg-brand-navy/85 backdrop-blur-md text-white rounded-xl px-3 py-1.5 text-center shadow-lg border border-white/15 select-none">
+            <span className="block text-[9px] font-bold tracking-widest text-slate-300">
+              {dateBadge.day}
+            </span>
+            <span className="block text-base font-extrabold leading-tight text-white">
+              {dateBadge.date}
+            </span>
+            <span className="block text-[9px] font-bold tracking-wider text-indigo-300">
+              {dateBadge.month}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsFavorite((prev) => !prev);
+            }}
+            aria-label={isFavorite ? 'Remove from favorites' : 'Save to favorites'}
+            className={`absolute top-3.5 right-3.5 p-2 rounded-full backdrop-blur-md border transition-all duration-200 cursor-pointer ${
+              isFavorite
+                ? 'bg-brand-coral border-brand-coral text-white shadow-md'
+                : 'bg-black/40 border-white/15 text-white/85 hover:bg-black/70 hover:text-white'
+            }`}
+          >
+            <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
+          </button>
+
+          {event.isDemo && (
+            <div className="absolute bottom-3 right-3.5">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-black/60 backdrop-blur-md text-slate-200 border border-white/15">
+                Demo Preview
+              </span>
+            </div>
+          )}
+        </Link>
+
+        <div className="p-5 flex-1 flex flex-col justify-between">
+          <div>
+            <Link to={eventHref} className="block">
+              <h3 className="text-lg font-serif font-bold text-white group-hover:text-indigo-200 transition-colors line-clamp-1">
+                {event.title}
+              </h3>
+            </Link>
+
+            <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-300">
+              <MapPin className="w-3.5 h-3.5 text-brand-coral shrink-0" />
+              <span className="truncate">{event.venue || 'Venue to be announced'}</span>
+            </div>
+          </div>
+
+          <div className="mt-5 pt-3.5 border-t border-white/10 flex items-center justify-between gap-3">
+            <div>
+              <span className="block text-[10px] uppercase tracking-wider font-semibold text-slate-400">
+                Tickets
+              </span>
+              <span className="text-sm font-bold text-white">{priceDisplay}</span>
+            </div>
+
+            <Link
+              to={eventHref}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-300 group-hover:text-white transition-colors"
+            >
+              <span>View Event</span>
+              <span className="w-7 h-7 rounded-full bg-white text-brand-navy flex items-center justify-center group-hover:bg-brand-purple group-hover:text-white transition-colors">
+                <ArrowRight className="w-3.5 h-3.5" />
+              </span>
+            </Link>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  // 4. DEFAULT CARD (Preserved for light surfaces)
   return (
     <article className="group relative bg-white rounded-3xl overflow-hidden border border-slate-200/70 shadow-soft hover:shadow-card hover:-translate-y-1 transition-all duration-300 flex flex-col">
       <Link to={eventHref} className="relative aspect-[16/10] overflow-hidden bg-brand-navy block">
