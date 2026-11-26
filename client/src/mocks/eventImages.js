@@ -1,46 +1,44 @@
 /**
  * High-quality event imagery matching ReserveX Design 1
- * Uses stable, reliable Unsplash direct photography URLs with WebP compression
+ * Uses verified Unsplash direct photography URLs with fallback support
  */
 
 export const HERO_IMAGE = "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1920&q=80";
+
+export const PROMO_BANNER_IMAGE = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1600&q=80";
+
+export const FALLBACK_EVENT_IMAGE = "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=800&q=80";
 
 export const CATEGORIES = [
   {
     id: 'concerts',
     name: 'Concerts',
     image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=600&q=80',
-    count: '120+ Events'
   },
   {
     id: 'festivals',
     name: 'Festivals',
     image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80',
-    count: '45+ Events'
   },
   {
     id: 'comedy',
     name: 'Comedy',
     image: 'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?auto=format&fit=crop&w=600&q=80',
-    count: '60+ Events'
   },
   {
     id: 'sports',
     name: 'Sports',
-    image: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80',
-    count: '30+ Events'
+    image: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=600&q=80',
   },
   {
     id: 'workshops',
     name: 'Workshops',
     image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=600&q=80',
-    count: '80+ Events'
   },
   {
     id: 'arts',
     name: 'Arts & Culture',
     image: 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?auto=format&fit=crop&w=600&q=80',
-    count: '55+ Events'
   }
 ];
 
@@ -74,7 +72,7 @@ export function getEventImage(event) {
   if (combined.includes('sing') || combined.includes('arijit') || combined.includes('concert') || combined.includes('live')) {
     return CURATED_STOCK_IMAGES[1]; // Singer on stage
   }
-  if (combined.includes('festival') || combined.includes('sunburn') || combined.includes('carnival')) {
+  if (combined.includes('festival') || combined.includes('sunburn') || combined.includes('carnival') || combined.includes('solstice')) {
     return CURATED_STOCK_IMAGES[2]; // Festival
   }
   if (combined.includes('tech') || combined.includes('summit') || combined.includes('conference') || combined.includes('hackathon')) {

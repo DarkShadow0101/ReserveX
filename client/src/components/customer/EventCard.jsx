@@ -1,40 +1,48 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Heart, Users } from 'lucide-react';
+import { MapPin, Heart, ArrowUpRight, Users } from 'lucide-react';
 import { formatDateBadge } from '../../utils/date';
 import { formatPriceStarting } from '../../utils/currency';
-import { getEventImage } from '../../mocks/eventImages';
+import { getEventImage, FALLBACK_EVENT_IMAGE } from '../../mocks/eventImages';
 
-export default function EventCard({ event, featured = false }) {
+export default function EventCard({ event }) {
   const [isFavorite, setIsFavorite] = useState(false);
-  const imageUrl = getEventImage(event);
+  const [imgSrc, setImgSrc] = useState(() => getEventImage(event));
+
   const dateBadge = formatDateBadge(event.startsAt);
   const priceDisplay = formatPriceStarting(event.ticketTypes);
+  const eventHref = event.isDemo
+    ? `/events?search=${encodeURIComponent(event.title || '')}`
+    : `/events/${event._id || event.id}`;
 
-  // Generate fake attendee count for visual fidelity matching Design 1
-  const goingCount = event.goingCount || `${((event.title?.length || 10) * 0.3 + 1.2).toFixed(1)}K+ going`;
+  const verifiedAttendeeCount = event.attendeeCount ?? event.goingCount ?? null;
 
   return (
-    <div className="group relative bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-soft hover:shadow-card transition-all duration-300 flex flex-col">
-      {/* Event Photography with Date Badge & Favorite Button */}
-      <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
+    <article className="group relative bg-white rounded-3xl overflow-hidden border border-slate-200/70 shadow-soft hover:shadow-card hover:-translate-y-1 transition-all duration-300 flex flex-col">
+      {/* Event Photography */}
+      <Link to={eventHref} className="relative aspect-[16/10] overflow-hidden bg-brand-navy block">
         <img
-          src={imageUrl}
-          alt={event.title || 'Event image'}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          src={imgSrc}
+          alt={event.title || 'Event cover'}
+          onError={() => {
+            if (imgSrc !== FALLBACK_EVENT_IMAGE) {
+              setImgSrc(FALLBACK_EVENT_IMAGE);
+            }
+          }}
+          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/85 via-brand-navy/20 to-black/25" />
 
         {/* Date Badge (Top-Left) */}
-        <div className="absolute top-3.5 left-3.5 bg-black/75 backdrop-blur-md text-white rounded-xl px-2.5 py-1.5 text-center shadow-lg border border-white/10 select-none">
+        <div className="absolute top-3.5 left-3.5 bg-brand-navy/85 backdrop-blur-md text-white rounded-2xl px-3 py-1.5 text-center shadow-lg border border-white/15 select-none">
           <span className="block text-[9px] font-bold tracking-widest text-slate-300">
             {dateBadge.day}
           </span>
-          <span className="block text-base font-extrabold leading-none text-white my-0.5">
+          <span className="block text-base font-extrabold leading-tight text-white">
             {dateBadge.date}
           </span>
-          <span className="block text-[9px] font-bold tracking-wider text-brand-purple">
+          <span className="block text-[9px] font-bold tracking-wider text-indigo-300">
             {dateBadge.month}
           </span>
         </div>
@@ -45,67 +53,76 @@ export default function EventCard({ event, featured = false }) {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            setIsFavorite(!isFavorite);
+            setIsFavorite((prev) => !prev);
           }}
-          className={`absolute top-3.5 right-3.5 p-2 rounded-full backdrop-blur-md transition-all duration-200 cursor-pointer ${
+          aria-label={isFavorite ? 'Remove from favorites' : 'Save to favorites'}
+          className={`absolute top-3.5 right-3.5 p-2.5 rounded-full backdrop-blur-md border transition-all duration-200 cursor-pointer ${
             isFavorite
-              ? 'bg-rose-500 text-white shadow-md'
-              : 'bg-black/40 text-white/90 hover:bg-black/70 hover:text-white'
+              ? 'bg-brand-coral border-brand-coral text-white shadow-md scale-105'
+              : 'bg-black/35 border-white/15 text-white/90 hover:bg-black/60 hover:text-white'
           }`}
-          title={isFavorite ? 'Remove from favorites' : 'Save to favorites'}
         >
           <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
         </button>
 
-        {/* Bottom image overlay: Status if not published */}
-        {event.status && event.status !== 'published' && (
-          <div className="absolute bottom-3 left-3">
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-white shadow">
+        {/* Bottom Badges */}
+        <div className="absolute bottom-3 left-3.5 right-3.5 flex items-center justify-between gap-2">
+          {event.status && event.status !== 'published' ? (
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/95 text-white shadow-sm">
               {event.status}
             </span>
-          </div>
-        )}
-      </div>
+          ) : (
+            <span />
+          )}
+
+          {event.isDemo && (
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-black/60 backdrop-blur-md text-slate-200 border border-white/15">
+              Demo Preview
+            </span>
+          )}
+        </div>
+      </Link>
 
       {/* Card Content */}
-      <div className="p-5 flex-1 flex flex-col justify-between">
+      <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
         <div>
-          <Link to={`/events/${event._id || event.id}`}>
+          <Link to={eventHref} className="block">
             <h3 className="text-lg font-bold text-slate-900 group-hover:text-brand-purple transition-colors line-clamp-1 font-sans">
               {event.title}
             </h3>
           </Link>
 
-          {/* Venue & Location */}
-          <div className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-500">
-            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
+            <MapPin className="w-3.5 h-3.5 text-brand-coral shrink-0" />
             <span className="truncate">{event.venue || 'Venue to be announced'}</span>
           </div>
         </div>
 
-        {/* Card Footer: Starting Price & Going Badge */}
-        <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between">
+        {/* Card Footer: Starting Price & Verified Action */}
+        <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
           <div>
-            <span className="text-xs font-bold text-slate-900">{priceDisplay}</span>
+            <span className="block text-[10px] uppercase tracking-wider font-semibold text-slate-400">
+              Tickets
+            </span>
+            <span className="text-sm font-bold text-slate-900">{priceDisplay}</span>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            {/* Avatar cluster */}
-            <div className="flex -space-x-1.5 overflow-hidden">
-              <span className="inline-block h-5 w-5 rounded-full ring-2 ring-white bg-indigo-500 text-[9px] font-bold text-white flex items-center justify-center">
-                A
-              </span>
-              <span className="inline-block h-5 w-5 rounded-full ring-2 ring-white bg-amber-500 text-[9px] font-bold text-white flex items-center justify-center">
-                R
-              </span>
-              <span className="inline-block h-5 w-5 rounded-full ring-2 ring-white bg-emerald-500 text-[9px] font-bold text-white flex items-center justify-center">
-                S
-              </span>
+          {verifiedAttendeeCount ? (
+            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-warm-100 px-2.5 py-1 rounded-full">
+              <Users className="w-3.5 h-3.5 text-brand-purple" />
+              <span>{verifiedAttendeeCount}</span>
             </div>
-            <span className="text-[11px] font-medium text-slate-500">{goingCount}</span>
-          </div>
+          ) : (
+            <Link
+              to={eventHref}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-brand-purple group-hover:text-indigo-700 transition-colors"
+            >
+              <span>View Event</span>
+              <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+          )}
         </div>
       </div>
-    </div>
+    </article>
   );
 }
