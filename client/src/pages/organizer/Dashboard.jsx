@@ -147,7 +147,7 @@ export default function Dashboard() {
   const firstName = user?.fullName ? user.fullName.split(' ')[0] : 'Organizer';
 
   if (loading) {
-    return <LoadingSpinner theme="dark" text="Loading organization analytics..." size="lg" />;
+    return <LoadingSpinner text="Loading organization analytics..." size="lg" />;
   }
 
   return (
@@ -266,7 +266,7 @@ export default function Dashboard() {
         <div className="lg:col-span-6">
           <Card className="p-6 border-white/10 bg-[#12151E]">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-sans font-bold text-white">
                 {demoMode ? 'Sample Upcoming Events' : 'Organization Events'}
               </h3>
               <Link
@@ -323,7 +323,7 @@ export default function Dashboard() {
                       </div>
 
                       <div className="flex items-center gap-3 shrink-0">
-                        <Badge variant={ev.status} theme="dark" dot={true}>
+                        <Badge variant={ev.status} dot={true}>
                           {ev.status === 'published' ? 'Published' : ev.status || 'Draft'}
                         </Badge>
                         {!demoMode && (
@@ -348,7 +348,7 @@ export default function Dashboard() {
         <div className="lg:col-span-6">
           <Card className="p-6 border-white/10 bg-[#12151E]">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-sans font-bold text-white">
                 {demoMode ? 'Sample Recent Bookings' : 'Recent Bookings'}
               </h3>
               <Link
@@ -392,7 +392,7 @@ export default function Dashboard() {
                           <td className="py-3.5 text-slate-300 truncate max-w-[120px]">{evTitle}</td>
                           <td className="py-3.5 font-mono font-semibold text-white">{formatPaiseToINR(amt)}</td>
                           <td className="py-3.5 text-right">
-                            <Badge variant={st} theme="dark" dot={true}>
+                            <Badge variant={st} dot={true}>
                               {st === 'CONFIRMED' ? 'Confirmed' : st === 'PENDING_PAYMENT' ? 'Pending' : st}
                             </Badge>
                           </td>

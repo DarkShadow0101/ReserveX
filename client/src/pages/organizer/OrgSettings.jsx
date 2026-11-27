@@ -39,7 +39,7 @@ export default function OrgSettings() {
             </div>
           </div>
 
-          <Badge variant={activeOrg.isActive ? 'published' : 'neutral'} theme="dark" dot={true}>
+          <Badge variant={activeOrg.isActive ? 'published' : 'neutral'} dot={true}>
             {activeOrg.isActive ? 'Active' : 'Suspended'}
           </Badge>
         </div>

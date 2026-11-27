@@ -65,7 +65,6 @@ export default function Login() {
           label="Email Address"
           type="email"
           required
-          theme="dark"
           autoComplete="email"
           placeholder="you@example.com"
           icon={Mail}
@@ -77,7 +76,6 @@ export default function Login() {
           label="Password"
           type={showPassword ? 'text' : 'password'}
           required
-          theme="dark"
           autoComplete="current-password"
           placeholder="Enter your password"
           icon={Lock}

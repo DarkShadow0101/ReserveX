@@ -18,6 +18,7 @@ import { formatEventDate } from '../../utils/date';
 import { extractErrorMessage } from '../../utils/errors';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Button from '../../components/ui/Button';
+import Modal from '../../components/ui/Modal';
 import { getEventImage, FALLBACK_EVENT_IMAGE } from '../../mocks/eventImages';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
@@ -38,6 +39,9 @@ export default function Checkout() {
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
+  const [sandboxOrder, setSandboxOrder] = useState(null);
+  const [sandboxSubmitting, setSandboxSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
@@ -66,17 +70,16 @@ export default function Checkout() {
     }
   }, [bookingId]);
 
-  const handleCancelHold = async () => {
-    if (!window.confirm('Are you sure you want to cancel this ticket hold? The tickets will be released back to other customers.')) {
-      return;
-    }
-
+  const confirmCancelHold = async () => {
     try {
       setCancelling(true);
       await bookingsApi.cancelBookingHold(bookingId);
+      setConfirmCancelOpen(false);
+      showToast('Ticket hold cancelled and seats released.', 'info');
       navigate(`/events/${booking.event?._id || booking.event}`);
     } catch (err) {
       setError(extractErrorMessage(err, 'Could not cancel booking hold'));
+      setConfirmCancelOpen(false);
     } finally {
       setCancelling(false);
     }
@@ -96,7 +99,13 @@ export default function Checkout() {
 
       const keyId = orderData.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_reservex_local';
 
-      if (window.Razorpay && !keyId.includes('placeholder') && !keyId.includes('local')) {
+      if (orderData.isDemoFallback || keyId.includes('placeholder') || keyId.includes('local')) {
+        setSandboxOrder(orderData);
+        setProcessingPayment(false);
+        return;
+      }
+
+      if (window.Razorpay) {
         const options = {
           key: keyId,
           amount: orderData.amount,
@@ -157,7 +166,7 @@ export default function Checkout() {
           },
           theme: {
             color: '#D9381E',
-            backdrop_color: isDark ? '#06080E' : '#F5F3EE'
+            backdrop_color: isDark ? '#06080E' : '#F8FAFC'
           }
         };
 
@@ -169,9 +178,7 @@ export default function Checkout() {
         rzp.open();
         return;
       } else {
-        setError(
-          'Razorpay checkout is not configured. Set valid VITE_RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET test keys in your environment to complete payment.'
-        );
+        setSandboxOrder(orderData);
         setProcessingPayment(false);
       }
     } catch (err) {
@@ -180,10 +187,32 @@ export default function Checkout() {
     }
   };
 
+  const handleSandboxApprove = async () => {
+    if (!sandboxOrder?.orderId) return;
+    try {
+      setSandboxSubmitting(true);
+      setError(null);
+      const res = await paymentsApi.completeDemoPayment({
+        bookingId,
+        razorpayOrderId: sandboxOrder.orderId
+      });
+      if (res.success) {
+        setSandboxOrder(null);
+        showToast('Sandbox payment verified & QR tickets issued!');
+        setSuccess(true);
+      }
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Sandbox payment confirmation failed'));
+      setSandboxOrder(null);
+    } finally {
+      setSandboxSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="pt-32 pb-20">
-        <LoadingSpinner theme="dark" text="Securing booking details..." size="lg" />
+        <LoadingSpinner text="Securing booking details..." size="lg" />
       </div>
     );
   }
@@ -266,28 +295,34 @@ export default function Checkout() {
 
   return (
     <div className="relative">
-      {/* Event stage atmosphere backdrop behind Checkout */}
-      <div
-        className="pointer-events-none fixed inset-x-0 top-0 h-[440px] z-0 overflow-hidden"
-        style={{
-          WebkitMaskImage: 'linear-gradient(to bottom, black 25%, transparent 100%)',
-          maskImage: 'linear-gradient(to bottom, black 25%, transparent 100%)'
-        }}
-      >
-        <img
-          src={checkoutBackdropImg}
-          alt=""
-          aria-hidden="true"
-          className="w-full h-full object-cover object-center opacity-[0.22] blur-[3px]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#07090D]/55 via-[#07090D]/75 to-[#07090D]" />
-      </div>
+      {/* Event stage atmosphere backdrop behind Checkout (Dark Mode only so Light Mode stays crisp) */}
+      {isDark && (
+        <div
+          className="pointer-events-none fixed inset-x-0 top-0 h-[440px] z-0 overflow-hidden"
+          style={{
+            WebkitMaskImage: 'linear-gradient(to bottom, black 25%, transparent 100%)',
+            maskImage: 'linear-gradient(to bottom, black 25%, transparent 100%)'
+          }}
+        >
+          <img
+            src={checkoutBackdropImg}
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover object-center opacity-[0.22] blur-[3px]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#07090D]/55 via-[#07090D]/75 to-[#07090D]" />
+        </div>
+      )}
 
-      {/* Obsidian transition shield while Razorpay opens / verifies */}
+      {/* Transition shield while Razorpay opens / verifies */}
       {processingPayment && (
-        <div className="fixed inset-0 z-40 bg-[#07090D]/88 backdrop-blur-md flex items-center justify-center px-4">
-          <div className="bg-[#10131C] border border-white/15 rounded-2xl p-6 max-w-sm w-full text-center space-y-3 shadow-2xl">
-            <LoadingSpinner theme="dark" size="md" text="Securing Razorpay session..." />
+        <div
+          className={`fixed inset-0 z-40 backdrop-blur-md flex items-center justify-center px-4 ${
+            isDark ? 'bg-[#07090D]/90' : 'bg-slate-950/50'
+          }`}
+        >
+          <div className="bg-[#101219] border border-white/15 rounded-2xl p-6 max-w-sm w-full text-center space-y-3 shadow-2xl">
+            <LoadingSpinner size="md" text="Securing Razorpay session..." />
             <p className="text-xs text-slate-400">
               Complete payment inside the Razorpay window. Do not close or refresh this tab.
             </p>
@@ -441,8 +476,8 @@ export default function Checkout() {
               <button
                 type="button"
                 disabled={cancelling}
-                onClick={handleCancelHold}
-                className="w-full py-2 text-xs text-rose-400 hover:text-rose-300 font-semibold cursor-pointer text-center"
+                onClick={() => setConfirmCancelOpen(true)}
+                className="w-full py-2 text-xs text-rose-500 hover:text-rose-400 font-semibold cursor-pointer text-center"
               >
                 {cancelling ? 'Cancelling...' : 'Release Tickets / Cancel Hold'}
               </button>
@@ -456,6 +491,90 @@ export default function Checkout() {
         </div>
       </div>
       </div>
+
+      {/* Release Hold Confirmation Modal */}
+      <Modal
+        isOpen={confirmCancelOpen}
+        onClose={() => !cancelling && setConfirmCancelOpen(false)}
+        title="Release Held Tickets?"
+        description="Your held seats will return to public inventory immediately."
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-300">
+            Are you sure you want to cancel booking <strong className="font-mono">{booking.bookingReference}</strong>?
+          </p>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={cancelling}
+              onClick={() => setConfirmCancelOpen(false)}
+            >
+              Keep Seats
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              loading={cancelling}
+              onClick={confirmCancelHold}
+            >
+              Release Hold
+            </Button>
+          </div>
+        </div>
+      </Modal>
+      {/* Sandbox Test Payment Modal (only opens when backend uses local dev sandbox order) */}
+      <Modal
+        isOpen={!!sandboxOrder}
+        onClose={() => !sandboxSubmitting && setSandboxOrder(null)}
+        title="Razorpay Sandbox Checkout"
+        description="Local development test mode — simulates a verified gateway payment."
+        maxWidth="max-w-md"
+      >
+        {sandboxOrder && (
+          <div className="space-y-4">
+            <div className="rounded-xl p-4 border border-white/10 bg-[#090A0E] space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Sandbox Order ID</span>
+                <span className="font-mono font-semibold text-white">{sandboxOrder.orderId}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Booking Ref</span>
+                <span className="font-mono font-bold text-[#D9381E]">{booking.bookingReference}</span>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-white/10 text-sm">
+                <span className="font-semibold text-white">Amount to Authorize</span>
+                <span className="font-mono font-bold text-white">{formatPaiseToINR(sandboxOrder.amount)}</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-400 leading-relaxed">
+              This triggers server-side HMAC verification, converts held capacity to sold inventory, and issues signed single-use QR tickets.
+            </p>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={sandboxSubmitting}
+                onClick={() => setSandboxOrder(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                loading={sandboxSubmitting}
+                onClick={handleSandboxApprove}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                Complete Test Payment
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

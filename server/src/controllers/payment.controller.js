@@ -30,6 +30,21 @@ async function verifyPayment(req, res, next) {
   }
 }
 
+// POST /api/payments/demo-complete (Customer - non-production sandbox fallback only)
+async function demoCompletePayment(req, res, next) {
+  try {
+    const result = await paymentService.completeDemoPayment(req.user._id, req.body);
+
+    res.status(200).json({
+      success: true,
+      message: 'Sandbox payment verified and digital tickets generated',
+      data: result
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // POST /api/payments/webhook (Razorpay Server-to-Server Webhook)
 async function handleWebhook(req, res, next) {
   try {
@@ -50,5 +65,6 @@ async function handleWebhook(req, res, next) {
 module.exports = {
   createPaymentOrder,
   verifyPayment,
+  demoCompletePayment,
   handleWebhook
 };

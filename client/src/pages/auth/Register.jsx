@@ -71,7 +71,6 @@ export default function Register() {
           label="Full Name"
           type="text"
           required
-          theme="dark"
           autoComplete="name"
           placeholder="Your full name"
           icon={User}
@@ -83,7 +82,6 @@ export default function Register() {
           label="Email Address"
           type="email"
           required
-          theme="dark"
           autoComplete="email"
           placeholder="you@example.com"
           icon={Mail}
@@ -95,7 +93,6 @@ export default function Register() {
           label="Password"
           type={showPassword ? 'text' : 'password'}
           required
-          theme="dark"
           autoComplete="new-password"
           placeholder="Min. 6 characters"
           icon={Lock}

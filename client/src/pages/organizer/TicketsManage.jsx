@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { organizationsApi } from '../../api/organizations.api';
 import { ticketsApi } from '../../api/tickets.api';
 import { useOrg } from '../../context/OrgContext';
+import { useToast } from '../../context/ToastContext';
 import { formatEventDate } from '../../utils/date';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Badge from '../../components/ui/Badge';
+import Button from '../../components/ui/Button';
 import SelectDropdown from '../../components/ui/SelectDropdown';
-import { Ticket, Calendar } from 'lucide-react';
+import { Ticket, Calendar, Copy, Sliders } from 'lucide-react';
 
 export default function TicketsManage() {
   const { activeOrgId } = useOrg();
+  const { showToast } = useToast();
   const [events, setEvents] = useState([]);
   const [selectedEventId, setSelectedEventId] = useState('');
   const [tickets, setTickets] = useState([]);
@@ -56,6 +60,16 @@ export default function TicketsManage() {
     loadTickets();
   }, [selectedEventId]);
 
+  const handleCopyToken = async (qrToken, ticketNumber) => {
+    if (!qrToken) return;
+    try {
+      await navigator.clipboard.writeText(qrToken);
+      showToast(`Copied QR token for ${ticketNumber} — paste in Gate Check-In to test.`);
+    } catch {
+      showToast('Copy failed — select and copy token manually.', 'error');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
@@ -68,24 +82,32 @@ export default function TicketsManage() {
           </p>
         </div>
 
-        {events.length > 0 && (
-          <div className="w-full sm:w-72">
-            <SelectDropdown
-              value={selectedEventId}
-              onChange={setSelectedEventId}
-              options={events.map((ev) => ({ value: ev._id, label: ev.title }))}
-              icon={Calendar}
-              theme="dark"
-              variant="boxed"
-              menuAlign="right"
-              ariaLabel="Select event"
-            />
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {selectedEventId && (
+            <Link to={`/organizer/events/${selectedEventId}`}>
+              <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1.5">
+                <Sliders className="w-3.5 h-3.5 text-[#D9381E]" /> Manage Tiers
+              </Button>
+            </Link>
+          )}
+          {events.length > 0 && (
+            <div className="w-full sm:w-64">
+              <SelectDropdown
+                value={selectedEventId}
+                onChange={setSelectedEventId}
+                options={events.map((ev) => ({ value: ev._id, label: ev.title }))}
+                icon={Calendar}
+                variant="boxed"
+                menuAlign="right"
+                ariaLabel="Select event"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {loading ? (
-        <LoadingSpinner theme="dark" text="Retrieving digital tickets..." />
+        <LoadingSpinner text="Retrieving digital tickets..." />
       ) : tickets.length > 0 ? (
         <div className="bg-[#12151E] rounded-2xl border border-white/10 overflow-hidden">
           <div className="overflow-x-auto">
@@ -114,15 +136,26 @@ export default function TicketsManage() {
                       {t.tierName}
                     </td>
                     <td className="py-4 px-4 font-mono text-[11px] text-slate-400">
-                      <span className="truncate max-w-[120px] inline-block">
-                        {t.qrToken?.substring(0, 18)}...
-                      </span>
+                      <div className="inline-flex items-center gap-1.5">
+                        <span className="truncate max-w-[110px] inline-block">
+                          {t.qrToken?.substring(0, 16)}...
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyToken(t.qrToken, t.ticketNumber)}
+                          title="Copy full signed QR token"
+                          aria-label={`Copy QR token for ${t.ticketNumber}`}
+                          className="p-1 rounded hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                     <td className="py-4 px-4 font-mono text-slate-400">
                       {t.usedAt ? formatEventDate(t.usedAt, 'dd MMM • hh:mm a') : '—'}
                     </td>
                     <td className="py-4 px-6 text-right">
-                      <Badge variant={t.status} theme="dark" dot={true}>
+                      <Badge variant={t.status} dot={true}>
                         {t.status}
                       </Badge>
                     </td>

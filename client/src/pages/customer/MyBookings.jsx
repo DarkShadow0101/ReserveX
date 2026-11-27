@@ -57,7 +57,7 @@ export default function MyBookings() {
       </div>
 
       {loading || authLoading ? (
-        <LoadingSpinner theme="dark" text="Loading your bookings..." />
+        <LoadingSpinner text="Loading your bookings..." />
       ) : !isAuthenticated ? (
         <div className="text-center py-20 bg-[#101219] rounded-2xl border border-white/10 p-8 space-y-4">
           <div className="w-16 h-16 rounded-full bg-[#FF4D2D]/15 border border-[#FF4D2D]/30 text-[#FF4D2D] flex items-center justify-center mx-auto">
@@ -85,7 +85,7 @@ export default function MyBookings() {
                   <span className="font-mono text-sm font-bold text-[#FF4D2D]">
                     {booking.bookingReference}
                   </span>
-                  <Badge variant={booking.status} theme="dark" dot={true}>
+                  <Badge variant={booking.status} dot={true}>
                     {booking.status}
                   </Badge>
                 </div>

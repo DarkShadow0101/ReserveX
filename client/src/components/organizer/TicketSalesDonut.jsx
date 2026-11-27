@@ -2,14 +2,16 @@ import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Ticket } from 'lucide-react';
 import Card from '../ui/Card';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function TicketSalesDonut({ data = [], totalTickets = '0', isDemo = false }) {
+  const { isDark } = useTheme();
   const hasData = Array.isArray(data) && data.length > 0;
 
   return (
     <Card className="p-6 border-white/10 bg-[#12151E] flex flex-col justify-between h-full">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-base font-bold text-white">Sales by Event</h3>
+        <h3 className="text-base font-sans font-bold text-white">Sales by Event</h3>
         {isDemo && (
           <span className="font-mono text-[11px] text-amber-300 font-semibold">Sample</span>
         )}
@@ -36,10 +38,10 @@ export default function TicketSalesDonut({ data = [], totalTickets = '0', isDemo
                 <Tooltip
                   formatter={(value) => [`${value}%`, 'Share']}
                   contentStyle={{
-                    backgroundColor: '#090A0E',
-                    color: '#F4F1EA',
+                    backgroundColor: isDark ? '#090A0E' : '#FFFFFF',
+                    color: isDark ? '#F4F1EA' : '#0F172A',
                     borderRadius: '10px',
-                    border: '1px solid rgba(255,255,255,0.12)',
+                    border: isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(15,23,42,0.12)',
                     fontSize: '11px'
                   }}
                 />

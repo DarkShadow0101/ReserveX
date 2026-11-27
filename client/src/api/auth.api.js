@@ -13,8 +13,13 @@ export const authApi = {
     const res = await apiClient.get('/auth/me');
     return res.data;
   },
-  logout: () => {
+  logout: async () => {
     localStorage.removeItem('reservex_token');
     localStorage.removeItem('reservex_user');
+    try {
+      await apiClient.post('/auth/logout');
+    } catch {
+      // Ignore network errors when clearing session cookie locally
+    }
   }
 };

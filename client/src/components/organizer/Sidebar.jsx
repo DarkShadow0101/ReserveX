@@ -34,7 +34,7 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
   const navItems = [
     { label: 'Dashboard', path: '/organizer', icon: LayoutDashboard, end: true },
     { label: 'Events', path: '/organizer/events', icon: Calendar },
-    { label: 'Ticket Tiers', path: '/organizer/tickets', icon: Ticket },
+    { label: 'Issued Tickets', path: '/organizer/tickets', icon: Ticket },
     { label: 'Bookings', path: '/organizer/bookings', icon: Receipt },
     { label: 'QR Check-In', path: '/organizer/check-in', icon: ScanLine, liveDot: true },
     { label: 'Team', path: '/organizer/team', icon: Users },
@@ -74,7 +74,7 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
         <div className="flex flex-col h-full overflow-y-auto">
           {/* 1. Brand Logo + Studio tag */}
           <div className="p-5 pb-4 flex items-center justify-between gap-2">
-            <Logo light={true} />
+            <Logo />
             <span className="font-mono text-[10px] uppercase tracking-widest text-slate-400 bg-white/[0.06] border border-white/10 px-2 py-0.5 rounded">
               Studio
             </span>
@@ -218,7 +218,6 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
         onClose={() => setCreateOrgModalOpen(false)}
         title="Create New Organization"
         description="Launch a new event organization on ReserveX."
-        theme="dark"
       >
         <form onSubmit={handleCreateOrg} className="space-y-4">
           {createError && (

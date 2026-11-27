@@ -20,6 +20,7 @@ import { ticketTypesApi } from '../../api/ticketTypes.api';
 import { formatPaiseToINR } from '../../utils/currency';
 import { formatEventDate } from '../../utils/date';
 import { extractErrorMessage } from '../../utils/errors';
+import { useToast } from '../../context/ToastContext';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
@@ -30,6 +31,7 @@ import Input from '../../components/ui/Input';
 export default function EventDetailManage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [event, setEvent] = useState(null);
   const [ticketTypes, setTicketTypes] = useState([]);
@@ -44,6 +46,10 @@ export default function EventDetailManage() {
   const [editVenue, setEditVenue] = useState('');
   const [savingEvent, setSavingEvent] = useState(false);
 
+  // Publish/Cancel Confirmation Modal State
+  const [confirmAction, setConfirmAction] = useState(null); // 'publish' | 'cancel' | null
+  const [actionBusy, setActionBusy] = useState(false);
+
   // Ticket Tier Modal State
   const [tierModalOpen, setTierModalOpen] = useState(false);
   const [tierName, setTierName] = useState('');
@@ -53,9 +59,9 @@ export default function EventDetailManage() {
   const [savingTier, setSavingTier] = useState(false);
   const [tierError, setTierError] = useState(null);
 
-  async function loadData() {
+  async function loadData(silent = false) {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setError(null);
       const [evRes, tiersRes] = await Promise.all([
         eventsApi.getEventForOrganizer(id),
@@ -74,7 +80,7 @@ export default function EventDetailManage() {
     } catch (err) {
       setError(extractErrorMessage(err, 'Failed to load event details'));
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 
@@ -95,8 +101,9 @@ export default function EventDetailManage() {
         venue: editVenue
       });
       setSuccessMsg('Event details updated successfully');
+      showToast('Event details saved');
       setIsEditingEvent(false);
-      await loadData();
+      await loadData(true);
     } catch (err) {
       setError(extractErrorMessage(err, 'Failed to update event'));
     } finally {
@@ -104,40 +111,50 @@ export default function EventDetailManage() {
     }
   };
 
-  const handlePublish = async () => {
+  const handlePublish = () => {
     if (ticketTypes.length === 0) {
-      alert('You must add at least one ticket tier before publishing the event.');
+      const msg = 'Add at least one ticket tier before publishing to the marketplace.';
+      setError(msg);
+      showToast(msg, 'error');
       return;
     }
-    if (!window.confirm('Are you sure you want to publish this event to the public marketplace?')) {
-      return;
-    }
-    try {
-      await eventsApi.publishEvent(id);
-      setSuccessMsg('Event published live to marketplace!');
-      await loadData();
-    } catch (err) {
-      setError(extractErrorMessage(err, 'Failed to publish event'));
-    }
+    setConfirmAction('publish');
   };
 
-  const handleCancel = async () => {
-    if (!window.confirm('Warning: Cancelling this event will prevent any new bookings. Proceed?')) {
-      return;
-    }
+  const handleCancel = () => {
+    setConfirmAction('cancel');
+  };
+
+  const executeLifecycleAction = async () => {
+    if (!confirmAction) return;
     try {
-      await eventsApi.cancelEvent(id);
-      setSuccessMsg('Event cancelled successfully');
-      await loadData();
+      setActionBusy(true);
+      setError(null);
+      if (confirmAction === 'publish') {
+        await eventsApi.publishEvent(id);
+        setSuccessMsg('Event published live to marketplace!');
+        showToast('Event is now live in public discovery!');
+      } else {
+        await eventsApi.cancelEvent(id);
+        setSuccessMsg('Event cancelled successfully');
+        showToast('Event cancelled', 'info');
+      }
+      setConfirmAction(null);
+      await loadData(true);
     } catch (err) {
-      setError(extractErrorMessage(err, 'Failed to cancel event'));
+      setError(extractErrorMessage(err, `Failed to ${confirmAction} event`));
+      setConfirmAction(null);
+    } finally {
+      setActionBusy(false);
     }
   };
 
   const handleToggleTier = async (tierId) => {
     try {
-      await ticketTypesApi.toggleTicketTypeStatus(tierId);
-      await loadData();
+      const res = await ticketTypesApi.toggleTicketTypeStatus(tierId);
+      const isNowActive = res.data?.ticketType?.isActive;
+      showToast(isNowActive ? 'Ticket tier activated' : 'Ticket tier paused', 'info');
+      await loadData(true);
     } catch (err) {
       setError(extractErrorMessage(err, 'Could not toggle tier status'));
     }
@@ -165,16 +182,22 @@ export default function EventDetailManage() {
     try {
       setSavingTier(true);
       setTierError(null);
+      setError(null);
 
       // Convert rupees to integer paise for backend
       const priceInPaise = Math.round(priceRupees * 100);
 
-      await ticketTypesApi.createTicketType(id, {
+      const res = await ticketTypesApi.createTicketType(id, {
         name: tierName,
         description: tierDesc,
         price: priceInPaise,
         totalCapacity: capacityNum
       });
+
+      const createdTier = res.data?.ticketType;
+      if (createdTier) {
+        setTicketTypes((prev) => [...prev, createdTier]);
+      }
 
       setTierModalOpen(false);
       setTierName('');
@@ -182,7 +205,8 @@ export default function EventDetailManage() {
       setTierPriceRupees('');
       setTierCapacity('');
       setSuccessMsg('Ticket tier created successfully');
-      await loadData();
+      showToast(`Added "${tierName}" tier`);
+      await loadData(true);
     } catch (err) {
       setTierError(extractErrorMessage(err, 'Failed to create ticket tier'));
     } finally {
@@ -191,7 +215,7 @@ export default function EventDetailManage() {
   };
 
   if (loading) {
-    return <LoadingSpinner theme="dark" text="Loading event configuration..." size="lg" />;
+    return <LoadingSpinner text="Loading event configuration..." size="lg" />;
   }
 
   if (error && !event) {
@@ -235,7 +259,7 @@ export default function EventDetailManage() {
               variant="primary"
               size="sm"
               onClick={handlePublish}
-              className="bg-[#10B981] hover:bg-emerald-600 text-[#060709] text-xs font-bold"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
             >
               <CheckCircle className="w-4 h-4 mr-1" /> Publish Event
             </Button>
@@ -272,7 +296,7 @@ export default function EventDetailManage() {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-sans font-bold text-white">{event.title}</h1>
-              <Badge variant={event.status} theme="dark" dot={true}>
+              <Badge variant={event.status} dot={true}>
                 {event.status}
               </Badge>
             </div>
@@ -451,7 +475,6 @@ export default function EventDetailManage() {
         onClose={() => setTierModalOpen(false)}
         title="Add Ticket Tier"
         description="Configure tier pricing, capacity, and sales parameters."
-        theme="dark"
       >
         <form onSubmit={handleCreateTier} className="space-y-4">
           {tierError && (
@@ -506,6 +529,45 @@ export default function EventDetailManage() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Publish / Cancel Event Confirmation Modal */}
+      <Modal
+        isOpen={!!confirmAction}
+        onClose={() => !actionBusy && setConfirmAction(null)}
+        title={confirmAction === 'publish' ? 'Publish Event Live?' : 'Cancel Event?'}
+        description={
+          confirmAction === 'publish'
+            ? 'Your event and active ticket tiers will become discoverable to customers.'
+            : 'Cancelling prevents any future ticket reservations and cannot be undone.'
+        }
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-300">
+            {confirmAction === 'publish'
+              ? `Ready to publish "${event?.title}" to the public marketplace?`
+              : `Are you sure you want to cancel "${event?.title}"?`}
+          </p>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={actionBusy}
+              onClick={() => setConfirmAction(null)}
+            >
+              Go Back
+            </Button>
+            <Button
+              variant={confirmAction === 'publish' ? 'primary' : 'danger'}
+              size="sm"
+              loading={actionBusy}
+              onClick={executeLifecycleAction}
+            >
+              {confirmAction === 'publish' ? 'Confirm Publish' : 'Confirm Cancel'}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

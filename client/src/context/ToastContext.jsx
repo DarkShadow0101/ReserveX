@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
-import { CheckCircle2, Info, Sparkles, X } from 'lucide-react';
+import { AlertCircle, AlertTriangle, CheckCircle2, Info, Sparkles, X } from 'lucide-react';
 import { useTheme } from './ThemeContext';
 
 const ToastContext = createContext({
@@ -40,9 +40,21 @@ export function ToastProvider({ children }) {
       >
         {toasts.map((toast) => {
           const Icon =
-            toast.variant === 'info' ? Info : toast.variant === 'accent' ? Sparkles : CheckCircle2;
+            toast.variant === 'error'
+              ? AlertCircle
+              : toast.variant === 'warning'
+              ? AlertTriangle
+              : toast.variant === 'info'
+              ? Info
+              : toast.variant === 'accent'
+              ? Sparkles
+              : CheckCircle2;
           const iconColor =
-            toast.variant === 'info'
+            toast.variant === 'error'
+              ? 'text-rose-500'
+              : toast.variant === 'warning'
+              ? 'text-amber-500'
+              : toast.variant === 'info'
               ? 'text-sky-400'
               : toast.variant === 'accent'
               ? 'text-[#FF4D2D]'
@@ -53,7 +65,7 @@ export function ToastProvider({ children }) {
               key={toast.id}
               className={`pointer-events-auto animate-dropdown-in flex items-center gap-2.5 pl-3.5 pr-2.5 py-2.5 rounded-xl border shadow-2xl backdrop-blur-xl text-xs sm:text-sm font-medium ${
                 isDark
-                  ? 'bg-[#0C0F18]/92 border-white/15 text-[#F4F1EA]'
+                  ? 'bg-[#0C0F18]/95 border-white/15 text-[#F4F1EA]'
                   : 'bg-white/95 border-slate-900/12 text-slate-900 shadow-[0_12px_32px_rgba(15,23,42,0.14)]'
               }`}
             >

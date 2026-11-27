@@ -39,9 +39,16 @@ async function createPaymentOrder(bookingId, userId) {
     throw new AppError('Booking hold has expired. Please create a new booking reservation.', 400);
   }
 
-  // Create order with Razorpay
+  // Create order with Razorpay (with sandbox fallback strictly in non-production environments)
   let order;
+  let isDemoFallback = false;
+  const keyId = process.env.RAZORPAY_KEY_ID || '';
+  const isProd = process.env.NODE_ENV === 'production';
+
   try {
+    if (!isProd && (process.env.PAYMENT_MODE === 'demo' || !keyId || keyId.includes('placeholder') || keyId.includes('local'))) {
+      throw new Error('Using sandbox order simulator');
+    }
     const razorpay = getRazorpayInstance();
     order = await razorpay.orders.create({
       amount: booking.totalAmount, // in paise
@@ -52,13 +59,8 @@ async function createPaymentOrder(bookingId, userId) {
       }
     });
   } catch (err) {
-    // If running in test environment or using test/mock credentials
-    if (
-      process.env.NODE_ENV === 'test' ||
-      !process.env.RAZORPAY_KEY_ID ||
-      process.env.RAZORPAY_KEY_ID.includes('placeholder') ||
-      process.env.RAZORPAY_KEY_ID.includes('local')
-    ) {
+    if (!isProd) {
+      isDemoFallback = true;
       order = {
         id: `order_test_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`,
         amount: booking.totalAmount,
@@ -66,12 +68,13 @@ async function createPaymentOrder(bookingId, userId) {
         receipt: booking.bookingReference
       };
     } else {
-      throw new AppError(`Payment provider error: ${err.message}`, 502);
+      const providerMsg = err?.error?.description || err?.description || err?.message || 'Gateway unavailable';
+      throw new AppError(`Payment provider error: ${providerMsg}`, 502);
     }
   }
 
   // Record initial Payment entity in CREATED state
-  const payment = await Payment.create({
+  await Payment.create({
     booking: booking._id,
     user: userId,
     razorpayOrderId: order.id,
@@ -85,7 +88,8 @@ async function createPaymentOrder(bookingId, userId) {
     amount: order.amount,
     currency: order.currency,
     bookingReference: booking.bookingReference,
-    keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_reservex_local'
+    keyId: keyId || 'rzp_test_reservex_local',
+    isDemoFallback
   };
 }
 
@@ -360,8 +364,36 @@ async function handleRazorpayWebhook(rawBody, signature, eventData) {
   }
 }
 
+/**
+ * Non-production sandbox confirmation for `order_test_` orders when live Razorpay keys
+ * are inactive/unconfigured locally. Strictly disabled in production.
+ */
+async function completeDemoPayment(userId, { bookingId, razorpayOrderId }) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new AppError('Demo payment simulation is disabled in production', 403);
+  }
+
+  if (!razorpayOrderId || !razorpayOrderId.startsWith('order_test_')) {
+    throw new AppError('Only local sandbox orders (order_test_*) can use demo confirmation', 400);
+  }
+
+  const razorpayPaymentId = `pay_demo_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
+  const razorpaySignature = crypto
+    .createHmac('sha256', getRazorpaySecret())
+    .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+    .digest('hex');
+
+  return verifyPayment(userId, {
+    bookingId,
+    razorpayOrderId,
+    razorpayPaymentId,
+    razorpaySignature
+  });
+}
+
 module.exports = {
   createPaymentOrder,
   verifyPayment,
+  completeDemoPayment,
   handleRazorpayWebhook
 };

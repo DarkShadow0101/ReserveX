@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, MapPin, Sparkles, AlertCircle } from 'lucide-react';
 import { organizationsApi } from '../../api/organizations.api';
 import { useOrg } from '../../context/OrgContext';
+import { useToast } from '../../context/ToastContext';
 import { extractErrorMessage } from '../../utils/errors';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -11,6 +12,7 @@ import Card from '../../components/ui/Card';
 export default function CreateEvent() {
   const navigate = useNavigate();
   const { activeOrgId } = useOrg();
+  const { showToast } = useToast();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -48,6 +50,7 @@ export default function CreateEvent() {
       });
 
       const newEvent = res.data?.event;
+      showToast('Draft event created! Add a ticket tier to publish.');
       if (newEvent?._id) {
         // Redirect to event management to configure ticket tiers
         navigate(`/organizer/events/${newEvent._id}`);

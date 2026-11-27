@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
-import { Ticket, Calendar, MapPin, QrCode, ShieldCheck } from 'lucide-react';
+import { Ticket, Calendar, MapPin, QrCode, ShieldCheck, Copy } from 'lucide-react';
 import { ticketsApi } from '../../api/tickets.api';
 import { formatEventDate } from '../../utils/date';
 import { getEventImage, FALLBACK_EVENT_IMAGE } from '../../mocks/eventImages';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { useToast } from '../../context/ToastContext';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
@@ -13,9 +15,21 @@ import Modal from '../../components/ui/Modal';
 
 export default function MyTickets() {
   const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isDark } = useTheme();
+  const { showToast } = useToast();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState(null);
+
+  const handleCopyToken = async (qrToken) => {
+    if (!qrToken) return;
+    try {
+      await navigator.clipboard.writeText(qrToken);
+      showToast('Signed QR token copied to clipboard!');
+    } catch {
+      showToast('Could not copy QR token.', 'error');
+    }
+  };
 
   useEffect(() => {
     async function loadTickets() {
@@ -65,7 +79,7 @@ export default function MyTickets() {
       </div>
 
       {loading || authLoading ? (
-        <LoadingSpinner theme="dark" text="Loading your passes..." />
+        <LoadingSpinner text="Loading your passes..." />
       ) : !isAuthenticated ? (
         <div className="text-center py-20 bg-[#101219] rounded-2xl border border-white/10 p-8 space-y-4">
           <div className="w-16 h-16 rounded-full bg-[#FF4D2D]/15 border border-[#FF4D2D]/30 text-[#FF4D2D] flex items-center justify-center mx-auto">
@@ -92,7 +106,7 @@ export default function MyTickets() {
                 key={ticket._id}
                 className="bg-[#101219] rounded-2xl overflow-hidden border border-white/10 hover:border-[#FF4D2D]/50 shadow-card transition-all duration-300 flex flex-col"
               >
-                <div className="relative aspect-[16/7] overflow-hidden bg-[#060709]">
+                <div data-photo-overlay="true" className="relative aspect-[16/7] overflow-hidden bg-[#060709]">
                   <img
                     src={imageUrl}
                     alt={event.title || 'Event'}
@@ -186,17 +200,20 @@ export default function MyTickets() {
         title="Event Gate Pass"
         description="Present this QR code at the entrance."
         maxWidth="max-w-xs sm:max-w-sm"
-        theme="dark"
       >
         {selectedTicket && (
-          <div className="rounded-2xl bg-[#0B0D13] border border-white/15 overflow-hidden">
-            {/* Gate Pass Header + Metadata (matches preview_customer_flow right panel) */}
+          <div
+            className={`rounded-2xl border overflow-hidden ${
+              isDark ? 'bg-[#0B0D13] border-white/15' : 'bg-slate-50 border-slate-200'
+            }`}
+          >
+            {/* Gate Pass Header + Metadata */}
             <div className="p-5 space-y-4">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-slate-300">
+                <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-slate-400">
                   ReserveX GATE PASS
                 </span>
-                <Badge variant={selectedTicket.status} theme="dark" dot={true} className="text-[10px] px-2.5 py-0.5">
+                <Badge variant={selectedTicket.status} dot={true} className="text-[10px] px-2.5 py-0.5">
                   {selectedTicket.status} TICKET
                 </Badge>
               </div>
@@ -235,14 +252,22 @@ export default function MyTickets() {
 
             {/* Perforated Ticket Stub Divider */}
             <div className="relative flex items-center">
-              <span className="w-4 h-4 rounded-full bg-[#101219] border-r border-white/15 -ml-2 shrink-0" />
-              <div className="flex-1 border-t border-dashed border-white/20 mx-1" />
-              <span className="w-4 h-4 rounded-full bg-[#101219] border-l border-white/15 -mr-2 shrink-0" />
+              <span
+                className={`w-4 h-4 rounded-full border-r -ml-2 shrink-0 ${
+                  isDark ? 'bg-[#101219] border-white/15' : 'bg-white border-slate-200'
+                }`}
+              />
+              <div className={`flex-1 border-t border-dashed mx-1 ${isDark ? 'border-white/20' : 'border-slate-300'}`} />
+              <span
+                className={`w-4 h-4 rounded-full border-l -mr-2 shrink-0 ${
+                  isDark ? 'bg-[#101219] border-white/15' : 'bg-white border-slate-200'
+                }`}
+              />
             </div>
 
             {/* Bottom QR Code & Serial Section */}
-            <div className="p-5 text-center space-y-3 bg-[#08090E]">
-              <div className="p-3 bg-[#F4F1EA] rounded-2xl inline-block shadow-lg">
+            <div className={`p-5 text-center space-y-3 ${isDark ? 'bg-[#08090E]' : 'bg-white'}`}>
+              <div className="p-3 bg-[#F4F1EA] rounded-2xl inline-block shadow-lg border border-slate-200/80">
                 <QRCodeSVG
                   value={selectedTicket.qrToken || 'INVALID_TOKEN'}
                   size={144}
@@ -255,9 +280,18 @@ export default function MyTickets() {
                 {selectedTicket.ticketNumber}
               </p>
 
-              <div className="pt-1 flex items-center justify-center gap-1.5 text-[10px] text-slate-400">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
-                <span>Verified single-use entry pass</span>
+              <div className="pt-1 flex flex-col items-center gap-2">
+                <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
+                  <span>Verified single-use entry pass</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopyToken(selectedTicket.qrToken)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/15 bg-white/[0.06] hover:bg-white/10 text-[11px] font-mono font-semibold text-slate-200 transition-colors cursor-pointer"
+                >
+                  <Copy className="w-3 h-3" /> Copy Gate Token
+                </button>
               </div>
             </div>
           </div>

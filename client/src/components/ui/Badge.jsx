@@ -1,12 +1,15 @@
 import React from 'react';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function Badge({
   children,
   variant = 'default',
   dot = false,
-  theme = 'dark',
+  theme,
   className = ''
 }) {
+  const { isDark } = useTheme();
+  const resolvedTheme = theme || (isDark ? 'dark' : 'light');
   const lightVariants = {
     default: 'bg-[#FF4D2D]/10 text-[#E63E20] border-[#FF4D2D]/25',
     published: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -53,7 +56,7 @@ export default function Badge({
   };
 
   const key = String(variant || 'default').toLowerCase();
-  const palette = theme === 'light' ? lightVariants : darkVariants;
+  const palette = resolvedTheme === 'light' ? lightVariants : darkVariants;
   const v = palette[key] || palette.default;
   const d = dotColors[key] || dotColors.default;
 

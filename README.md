@@ -1,25 +1,21 @@
 # ReserveX 🎟️
 
-ReserveX is a multi-tenant event ticketing and booking platform tailored for small organizers such as college fests, technical clubs, workshops, and hackathons. It is engineered with a primary focus on concurrency-safe bookings, transactional data integrity, signed payment recovery, and strict multi-tenant isolation.
+ReserveX is a full-stack, multi-tenant event ticketing and venue check-in platform. Customers discover live events, lock tickets with 10-minute concurrency-safe holds, pay via Razorpay, and receive signed single-use QR entry passes; organizers manage teams, events, ticket tiers, revenue analytics, and gate scanning from Organizer Studio.
+
+> **Want a quick walkthrough to explain every feature?** Read [HOW_IT_WORKS.md](./HOW_IT_WORKS.md) for a plain-English architecture & demo script.
 
 ---
 
 ## 🛠️ Tech Stack & Architectural Decisions
 
-- **Runtime & Language**: Node.js with Plain JavaScript (CommonJS, no TypeScript).
-- **Backend Framework**: Express.js.
-- **Database & ODM**: MongoDB Atlas (replica set) + Mongoose.
-- **Transaction Safety**: Multi-document replica set sessions (`session.withTransaction`) & atomic conditional updates (`$expr`).
-- **Authentication**: JWT (JSON Web Tokens) with `httpOnly` cookie support + `bcrypt` password hashing (10 salt rounds).
-- **Multi-Tenancy & RBAC**:
-  - Global `User` accounts (`role: 'customer'`).
-  - Scoped `Membership` model per organization (`role: 'owner'` | `'staff'`).
-  - Middleware-enforced data isolation (`requireOrgRole`).
-- **Payments & Webhooks**: Razorpay (order creation, HMAC-SHA256 checkout verification, and raw-body signed webhook deduplication).
-- **Digital Ticketing**: HMAC-SHA256 signed QR tokens (base64url) with single-use check-in enforcement.
-- **Validation**: Zod (v4) schema validation middleware.
-- **Security**: Helmet, CORS with credentials, centralized error handling (`AppError`), rate limiting on auth endpoints.
-- **Testing**: Jest + Supertest running live integration tests against MongoDB Atlas replica sets.
+- **Frontend**: React 19 + Vite 8 + Tailwind CSS + Recharts + `qrcode.react` + `html5-qrcode`, supporting persistent **Dark (Obsidian)** & **Light (Gallery Daylight)** themes and lazy route code-splitting.
+- **Backend**: Node.js (CommonJS) + Express 5 + Zod (v4) validation.
+- **Database & ODM**: MongoDB Atlas (replica set) + Mongoose with multi-document ACID transactions (`session.withTransaction`) & atomic `$expr` capacity locks.
+- **Authentication**: JWT with `httpOnly` cookie support + `Authorization: Bearer` header + `bcrypt` (10 rounds).
+- **Multi-Tenancy & RBAC**: Scoped `Membership` model per organization (`owner` | `staff`), `requireOrgRole` middleware, and transactional `ownerCount` last-owner protection.
+- **Payments & Webhooks**: Razorpay (order creation, HMAC-SHA256 checkout verification, and raw-body signed `WebhookEvent` deduplication).
+- **Digital Ticketing**: HMAC-SHA256 signed QR tokens (`base64url`) with strict single-use (`VALID` -> `USED`) gate check-in enforcement.
+- **Testing**: Jest + Supertest integration suite (`8` suites / `75` tests) against live MongoDB Atlas.
 
 ---
 
@@ -27,84 +23,32 @@ ReserveX is a multi-tenant event ticketing and booking platform tailored for sma
 
 ```text
 ReserveX/
-├── client/                     # Placeholder for React + Vite frontend
-│   └── README.md
+├── client/                     # React + Vite frontend
+│   ├── src/
+│   │   ├── api/                # Axios client + endpoint wrappers
+│   │   ├── components/         # AuthShell, Customer cards, Organizer charts/nav, UI kit
+│   │   ├── context/            # AuthContext, OrgContext, ThemeContext, ToastContext
+│   │   ├── pages/              # Customer (Home, Explore, Detail, Checkout, Wallet) & Organizer Studio
+│   │   └── routes/             # Lazy-split AppRoutes.jsx
+│   ├── .env.example
+│   └── package.json
 ├── server/
 │   ├── src/
-│   │   ├── config/
-│   │   │   ├── db.js           # Native Mongoose MongoDB Atlas connection
-│   │   │   └── razorpay.js     # Razorpay SDK client instance
-│   │   ├── controllers/
-│   │   │   ├── auth.controller.js
-│   │   │   ├── booking.controller.js
-│   │   │   ├── event.controller.js
-│   │   │   ├── health.controller.js
-│   │   │   ├── organization.controller.js
-│   │   │   ├── payment.controller.js
-│   │   │   ├── ticket.controller.js
-│   │   │   └── ticketType.controller.js
-│   │   ├── jobs/
-│   │   │   └── expireHolds.job.js        # Background cleaner for expired booking holds
-│   │   ├── middleware/
-│   │   │   ├── auth.middleware.js        # JWT verify + global RBAC
-│   │   │   ├── error.middleware.js       # Centralized 4-argument Express error handler
-│   │   │   ├── org.middleware.js         # Multi-tenant organization isolation (requireOrgRole)
-│   │   │   ├── rateLimit.middleware.js   # Express rate limiters for auth
-│   │   │   └── validate.middleware.js    # Reusable Zod validation middleware
-│   │   ├── models/
-│   │   │   ├── booking.model.js          # Booking holds, items, and references
-│   │   │   ├── event.model.js            # Events (draft, published, cancelled)
-│   │   │   ├── membership.model.js       # User-to-Organization relationship
-│   │   │   ├── organization.model.js     # Organizations & atomic owner counts
-│   │   │   ├── payment.model.js          # Razorpay orders, payments, amounts, and statuses
-│   │   │   ├── ticket.model.js           # Digital tickets with signed QR tokens
-│   │   │   ├── ticketType.model.js       # Ticket tiers, prices in paise, inventory counters
-│   │   │   ├── user.model.js             # Global user accounts
-│   │   │   └── webhookEvent.model.js     # Webhook idempotency and audit logs
-│   │   ├── routes/
-│   │   │   ├── auth.routes.js
-│   │   │   ├── booking.routes.js
-│   │   │   ├── event.routes.js
-│   │   │   ├── health.routes.js
-│   │   │   ├── organization.routes.js
-│   │   │   ├── payment.routes.js
-│   │   │   ├── ticket.routes.js
-│   │   │   └── ticketType.routes.js
-│   │   ├── services/
-│   │   │   ├── booking.service.js        # Concurrency-safe holds, cancellations, background expiry
-│   │   │   ├── event.service.js          # Event lifecycles, public discovery, organizer updates
-│   │   │   ├── organization.service.js   # Org creation, co-owner management, transactional last-owner guard
-│   │   │   ├── payment.service.js        # Razorpay orders, HMAC signature verification, signed webhooks
-│   │   │   ├── ticket.service.js         # QR token generation, check-in validation, attendee list
-│   │   │   └── ticketType.service.js     # Ticket tier creation, capacity guardrails
-│   │   ├── utils/
-│   │   │   └── errors.js                 # Custom operational error class (AppError)
-│   │   ├── validators/
-│   │   │   ├── auth.validator.js
-│   │   │   ├── booking.validator.js
-│   │   │   ├── event.validator.js
-│   │   │   ├── organization.validator.js
-│   │   │   ├── payment.validator.js
-│   │   │   ├── ticket.validator.js
-│   │   │   └── ticketType.validator.js
-│   │   ├── app.js              # Express app definition (routes, middleware, error handler)
-│   │   └── server.js           # Server bootstrap & background job runner
-│   ├── tests/
-│   │   ├── auth.test.js        # Auth integration tests (9 tests)
-│   │   ├── booking.test.js     # Parallel load concurrency & hold expiry tests (8 tests)
-│   │   ├── event.test.js       # Event lifecycle & public discovery tests (14 tests)
-│   │   ├── health.test.js      # Health check tests (1 test)
-│   │   ├── organization.test.js# Multi-tenancy isolation & race condition tests (10 tests)
-│   │   ├── payment.test.js     # Razorpay orders, HMAC verification, webhook idempotency tests (11 tests)
-│   │   ├── ticket.test.js      # QR token signing, single-use check-in, organizer management tests (8 tests)
-│   │   └── ticketType.test.js  # Ticket tier & capacity guardrail tests (11 tests)
-│   ├── .env.example
-│   ├── jest.config.js
+│   │   ├── config/             # db.js, env.js startup validator, razorpay.js
+│   │   ├── controllers/        # auth, booking, event, health, org, payment, ticket, ticketType
+│   │   ├── jobs/               # expireHolds.job.js (automatic 10m seat release)
+│   │   ├── middleware/         # auth, errorHandler, requireOrgRole, rateLimit, validate
+│   │   ├── models/             # User, Org, Membership, Event, TicketType, Booking, Payment, Ticket, WebhookEvent
+│   │   ├── routes/             # Feature routers
+│   │   ├── seeds/              # seedDemo.js (idempotent demo events + INR tiers)
+│   │   ├── services/           # Transactional business logic
+│   │   └── validators/         # Zod request schemas
+│   ├── tests/                  # 8 Jest + Supertest integration test suites (75 tests)
 │   └── package.json
-├── .env.example
-├── AGENTS.md
-├── ARCHITECTURE.md
-├── PROJECT_STATUS.md
+├── ARCHITECTURE.md             # Detailed backend engineering notes
+├── BACKEND_ARCHITECTURE.md     # API security & deployment notes
+├── HOW_IT_WORKS.md             # Plain-English explainer & presentation walkthrough
+├── PRODUCT.md                  # Customer & UI specification
 └── README.md
 ```
 
@@ -113,46 +57,38 @@ ReserveX/
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
-- **Node.js**: v20 or higher (v24 recommended)
-- **MongoDB Atlas**: An active MongoDB Atlas replica set cluster (transactions require a replica set)
-- **Git**
+- **Node.js** v20+ (v24 supported)
+- **MongoDB Atlas** replica set URI (required for multi-document ACID transactions)
 
 ### 2. Configure Environment Variables
-Copy `.env.example` to `server/.env`:
-```bash
-cp .env.example server/.env
-```
-Ensure required variables are configured in `server/.env`:
-```env
-PORT=5000
-NODE_ENV=development
-CLIENT_URL=http://localhost:5173
-MONGO_URI="mongodb+srv://<username>:<password>@cluster0.mongodb.net/reservex?retryWrites=true&w=majority"
-JWT_SECRET="reservex-super-secret-jwt-key-change-this-in-production-min-32-chars"
-JWT_EXPIRES_IN="7d"
-HOLD_TTL_MINUTES=10
-RAZORPAY_KEY_ID="rzp_test_your_key_id"
-RAZORPAY_KEY_SECRET="your_razorpay_secret"
-RAZORPAY_WEBHOOK_SECRET="your_razorpay_webhook_secret"
-QR_SIGNING_SECRET="reservex-secret-qr-key-min-32-chars"
-```
+- **Backend (`server/.env`):** copy `server/.env.example` and fill `MONGO_URI`, `JWT_SECRET`, `QR_SIGNING_SECRET`, `CORS_ORIGIN="http://localhost:5173"`, and Razorpay keys.
+- **Frontend (`client/.env`):** copy `client/.env.example` and set `VITE_API_BASE_URL="http://localhost:5000/api"` and `VITE_RAZORPAY_KEY_ID`.
 
-### 3. Install Dependencies
+### 3. Install, Seed & Run
 ```bash
+# Terminal 1 — Backend API (:5000)
 cd server
 npm install
-```
+npm run seed   # Idempotently populates demo organizer "ReserveX Live" + 6 sample events
+npm run dev
 
-### 4. Start Development Server
-```bash
+# Terminal 2 — Frontend UI (:5173)
+cd client
+npm install
 npm run dev
 ```
-The server will connect to MongoDB Atlas and listen on `http://localhost:5000`.
 
-### 5. Run the Automated Test Suite
-To run all 72 integration tests live against MongoDB Atlas:
+### 4. Run Automated Backend Integration Tests
+Runs all `8` test suites (`75` tests) against MongoDB:
 ```bash
+cd server
 npm test
+```
+
+### 5. Build Frontend Production Bundle
+```bash
+cd client
+npm run build
 ```
 
 ---

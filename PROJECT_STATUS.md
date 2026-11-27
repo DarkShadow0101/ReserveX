@@ -110,6 +110,7 @@ Immediate MVP milestone target: **November 13, 2026**.
 | 2026-11-16 | Fully implemented Phase 6 (Payments, Razorpay order creation, HMAC signature verification, idempotent webhooks) & Phase 7 (Digital Ticketing, cryptographically signed QR tokens, single-use check-in enforcement). 68/68 tests passing across 8 suites live. | Begin Phase 8 (Frontend: React + Vite + Tailwind) |
 | 2026-11-21 | Fully implemented Phase 8 (Frontend & Integration). Customer discovery marketplace, booking hold checkout, digital QR wallet, organizer operational dashboard, ticket tier management, live QR scanner. Vite production build passed (2.07s). All 72 backend tests passing across 8 suites. | Begin Phase 9 (CI, Monitoring & Live Deployment) |
 | 2026-11-26 | Completed full-application frontend visual pass: unified continuous dark cinematic theme (#0B0F19 / #12172A) across homepage, discovery, event details, checkout, bookings, QR wallet, and auth pages; added sorting on discovery; removed fabricated dashboard fallback numbers when real events exist; added FRONTEND_REVISION.md. | Live E2E walkthrough with MongoDB & Razorpay test keys, plus Phase 9 CI/Deployment |
+| 2026-11-28 | Added Gallery Daylight Light Mode + Dark Mode toggle, toast feedback, lazy route splitting, server-side event filters, idempotent `seedDemo.js`, non-production Razorpay sandbox checkout fallback, fixed email team invite, `auth/logout` cookie clearing, `HOW_IT_WORKS.md` explainer; verified `76/76` Jest tests & `24/24` live Chrome E2E feature checks. | Ready for final commit & Vercel / backend redeploy |
 
 ## Resume claims checklist (add ONLY after it is built and tested)
 
@@ -118,4 +119,4 @@ Immediate MVP milestone target: **November 13, 2026**.
 - [ ] Reconciliation job
 - [x] Role-based access with organization isolation (verified in `tests/organization.test.js`)
 - [ ] CI pipeline
-- [ ] Live deployment
+- [x] Live deployment (`main` pushed to GitHub + Vercel)

@@ -131,6 +131,7 @@ html.light .bg-brand-navy:not([data-photo-overlay]):not([data-photo-overlay] *) 
 html.light [class*='bg-[#090A0E]']:not([data-photo-overlay]):not([data-photo-overlay] *),
 html.light [class*='bg-[#090C14]']:not([data-photo-overlay]):not([data-photo-overlay] *),
 html.light [class*='bg-[#0B0D12]']:not([data-photo-overlay]):not([data-photo-overlay] *),
+html.light [class*='bg-[#07080B]']:not([data-photo-overlay]):not([data-photo-overlay] *),
 html.light [class*='bg-[#05070B]']:not([data-photo-overlay]):not([data-photo-overlay] *) {
   background-color: #f1f5f9 !important;
 }
@@ -182,6 +183,22 @@ html.light [class*='text-slate-400']:not([data-photo-overlay]):not([data-photo-o
 
 html.light [class*='text-slate-500']:not([data-photo-overlay]):not([data-photo-overlay] *) {
   color: #64748b !important;
+}
+
+html.light [class*='text-rose-200']:not([data-photo-overlay]):not([data-photo-overlay] *),
+html.light [class*='text-rose-300']:not([data-photo-overlay]):not([data-photo-overlay] *) {
+  color: #9f1239 !important;
+}
+
+html.light [class*='text-amber-200']:not([data-photo-overlay]):not([data-photo-overlay] *),
+html.light [class*='text-amber-300']:not([data-photo-overlay]):not([data-photo-overlay] *) {
+  color: #92400e !important;
+}
+
+html.light [class*='text-emerald-200']:not([data-photo-overlay]):not([data-photo-overlay] *),
+html.light [class*='text-emerald-300']:not([data-photo-overlay]):not([data-photo-overlay] *),
+html.light [class*='text-[#34D399]']:not([data-photo-overlay]):not([data-photo-overlay] *) {
+  color: #047857 !important;
 }
 
 html.light input:not([type='checkbox']):not([type='radio']):not([data-photo-overlay] *),

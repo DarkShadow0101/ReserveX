@@ -15,6 +15,7 @@ import { eventsApi } from '../../api/events.api';
 import { ticketTypesApi } from '../../api/ticketTypes.api';
 import { bookingsApi } from '../../api/bookings.api';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { formatEventDate } from '../../utils/date';
 import { formatPaiseToINR } from '../../utils/currency';
 import { getEventImage, FALLBACK_EVENT_IMAGE } from '../../mocks/eventImages';
@@ -27,6 +28,7 @@ export default function EventDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
 
   const [event, setEvent] = useState(null);
   const [ticketTypes, setTicketTypes] = useState([]);
@@ -120,6 +122,7 @@ export default function EventDetail() {
 
       const booking = res.data?.booking;
       if (booking?._id) {
+        showToast('Seats held for 10 minutes! Complete checkout.');
         navigate(`/checkout/${booking._id}`);
       } else {
         throw new Error('No booking returned from server');
@@ -132,15 +135,19 @@ export default function EventDetail() {
   };
 
   if (loading) {
-    return (
+    const eventAlreadyStarted = !!(event?.startsAt && new Date(event.startsAt) <= new Date());
+
+  return (
       <div className="pt-32 pb-20">
-        <LoadingSpinner theme="dark" text="Loading event details..." size="lg" />
+        <LoadingSpinner text="Loading event details..." size="lg" />
       </div>
     );
   }
 
   if (error && !event) {
-    return (
+    const eventAlreadyStarted = !!(event?.startsAt && new Date(event.startsAt) <= new Date());
+
+  return (
       <div className="pt-32 pb-24 max-w-xl mx-auto px-4 text-center space-y-4">
         <div className="w-16 h-16 rounded-full bg-rose-500/15 border border-rose-400/30 text-rose-400 flex items-center justify-center mx-auto">
           <AlertCircle className="w-8 h-8" />
@@ -155,6 +162,8 @@ export default function EventDetail() {
       </div>
     );
   }
+
+  const eventAlreadyStarted = !!(event?.startsAt && new Date(event.startsAt) <= new Date());
 
   return (
     <div className="pt-24 pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
@@ -311,7 +320,9 @@ export default function EventDetail() {
                   const isSoldOut = available <= 0;
                   const qty = quantities[tier._id] || 0;
 
-                  return (
+                  const eventAlreadyStarted = !!(event?.startsAt && new Date(event.startsAt) <= new Date());
+
+  return (
                     <div
                       key={tier._id}
                       className={`p-4 rounded-xl border transition-all ${
@@ -390,11 +401,15 @@ export default function EventDetail() {
                 variant="primary"
                 size="lg"
                 loading={submitting}
-                disabled={totalSelectedTickets === 0 || submitting}
+                disabled={eventAlreadyStarted || totalSelectedTickets === 0 || submitting}
                 onClick={handleBookingHold}
-                className="w-full rounded-xl bg-[#FF4D2D] hover:bg-[#E63E20] shadow-glow py-3.5 text-base"
+                className="w-full rounded-xl bg-[#D9381E] hover:bg-[#C92C12] shadow-glow py-3.5 text-base"
               >
-                {isAuthenticated ? 'Continue to Checkout' : 'Sign In to Reserve'}
+                {eventAlreadyStarted
+                  ? 'Booking Closed (Event Started)'
+                  : isAuthenticated
+                  ? 'Continue to Checkout'
+                  : 'Sign In to Reserve'}
               </Button>
 
               <div className="flex items-center justify-center gap-2 text-[11px] text-slate-400">

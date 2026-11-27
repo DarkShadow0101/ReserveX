@@ -28,7 +28,20 @@ const verifyPaymentSchema = {
   })
 };
 
+const demoCompleteSchema = {
+  body: z.object({
+    bookingId: z
+      .string({ error: 'Booking ID is required' })
+      .regex(/^[0-9a-fA-F]{24}$/, 'Invalid booking ID format'),
+
+    razorpayOrderId: z
+      .string({ error: 'Order ID is required' })
+      .min(1, 'Order ID cannot be empty')
+  })
+};
+
 module.exports = {
   createOrderSchema,
-  verifyPaymentSchema
+  verifyPaymentSchema,
+  demoCompleteSchema
 };

@@ -13,11 +13,14 @@ import {
 } from 'lucide-react';
 import { ticketsApi } from '../../api/tickets.api';
 import { extractErrorMessage } from '../../utils/errors';
-import { formatEventDate } from '../../utils/date';
+import { useTheme } from '../../context/ThemeContext';
+import { useToast } from '../../context/ToastContext';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 
 export default function CheckInScanner() {
+  const { isDark } = useTheme();
+  const { showToast } = useToast();
   const [manualToken, setManualToken] = useState('');
   const [checkingIn, setCheckingIn] = useState(false);
   const [scanResult, setScanResult] = useState(null); // { type: 'success' | 'warning' | 'error', message, ticket }
@@ -39,6 +42,7 @@ export default function CheckInScanner() {
         message: 'Ticket Validated Successfully! Attendee admitted.',
         ticket: checkedTicket
       });
+      showToast(`Admitted ${checkedTicket?.customerName || 'attendee'} (${checkedTicket?.ticketNumber || ''})`);
       setManualToken('');
     } catch (err) {
       const status = err.response?.status;
@@ -49,11 +53,13 @@ export default function CheckInScanner() {
           type: 'warning',
           message: msg || 'DUPLICATE SCAN: Ticket has already been checked in!'
         });
+        showToast('Ticket already scanned earlier (single-use)', 'error');
       } else {
         setScanResult({
           type: 'error',
           message: msg || 'INVALID TICKET: Cryptographic signature mismatch or token not found.'
         });
+        showToast('Invalid or forged QR token', 'error');
       }
     } finally {
       setCheckingIn(false);
@@ -120,10 +126,16 @@ export default function CheckInScanner() {
         <div
           className={`p-6 rounded-2xl border shadow-card ${
             scanResult.type === 'success'
-              ? 'bg-[#0D1A15] border-[#10B981]/45 text-emerald-100'
+              ? isDark
+                ? 'bg-[#0D1A15] border-[#10B981]/45 text-emerald-100'
+                : 'bg-emerald-50 border-emerald-300 text-emerald-950'
               : scanResult.type === 'warning'
-              ? 'bg-[#1D150A] border-amber-400/45 text-amber-100'
-              : 'bg-[#1C0D10] border-rose-500/45 text-rose-100'
+              ? isDark
+                ? 'bg-[#1D150A] border-amber-400/45 text-amber-100'
+                : 'bg-amber-50 border-amber-300 text-amber-950'
+              : isDark
+              ? 'bg-[#1C0D10] border-rose-500/45 text-rose-100'
+              : 'bg-rose-50 border-rose-300 text-rose-950'
           }`}
         >
           <div className="flex items-start gap-4">
@@ -133,7 +145,7 @@ export default function CheckInScanner() {
                   ? 'bg-[#10B981] text-[#060709]'
                   : scanResult.type === 'warning'
                   ? 'bg-amber-400 text-[#060709]'
-                  : 'bg-rose-500 text-white'
+                  : 'bg-rose-600 text-white'
               }`}
             >
               {scanResult.type === 'success' && <CheckCircle2 className="w-7 h-7" />}
@@ -154,7 +166,7 @@ export default function CheckInScanner() {
                   variant="outline"
                   size="sm"
                   onClick={() => setScanResult(null)}
-                  className="text-xs border-white/15 bg-white/[0.06] text-white"
+                  className="text-xs border-white/15 bg-white/[0.06]"
                 >
                   Clear & Scan Next
                 </Button>

@@ -76,7 +76,6 @@ export default function BookingsManage() {
               onChange={setSelectedEventId}
               options={events.map((ev) => ({ value: ev._id, label: ev.title }))}
               icon={Calendar}
-              theme="dark"
               variant="boxed"
               menuAlign="right"
               ariaLabel="Select event"
@@ -86,7 +85,7 @@ export default function BookingsManage() {
       </div>
 
       {loading ? (
-        <LoadingSpinner theme="dark" text="Retrieving booking records..." />
+        <LoadingSpinner text="Retrieving booking records..." />
       ) : bookings.length > 0 ? (
         <div className="bg-[#12151E] rounded-2xl border border-white/10 overflow-hidden">
           <div className="overflow-x-auto">
@@ -125,7 +124,7 @@ export default function BookingsManage() {
                       {formatEventDate(bk.createdAt, 'dd MMM yyyy • hh:mm a')}
                     </td>
                     <td className="py-4 px-6 text-right">
-                      <Badge variant={bk.status} theme="dark" dot={true}>
+                      <Badge variant={bk.status} dot={true}>
                         {bk.status}
                       </Badge>
                     </td>

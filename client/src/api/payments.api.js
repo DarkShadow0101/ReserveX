@@ -10,5 +10,10 @@ export const paymentsApi = {
     // Expected: { bookingId, razorpayOrderId, razorpayPaymentId, razorpaySignature }
     const res = await apiClient.post('/payments/verify', verificationData);
     return res.data;
+  },
+  completeDemoPayment: async (demoData) => {
+    // Non-production sandbox fallback confirmation for order_test_* orders
+    const res = await apiClient.post('/payments/demo-complete', demoData);
+    return res.data;
   }
 };

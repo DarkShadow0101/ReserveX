@@ -10,8 +10,10 @@ import {
 } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 import Card from '../ui/Card';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function RevenueChart({ data = [], isDemo = false }) {
+  const { isDark } = useTheme();
   const hasData = Array.isArray(data) && data.length > 0;
 
   const formatYAxis = (val) => {
@@ -24,7 +26,7 @@ export default function RevenueChart({ data = [], isDemo = false }) {
     <Card className="p-6 border-white/10 bg-[#12151E] flex flex-col justify-between h-full">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-base font-bold text-white">Ticket Sales & Revenue</h3>
+          <h3 className="text-base font-sans font-bold text-white">Ticket Sales & Revenue</h3>
           {isDemo && (
             <span className="font-mono text-[11px] text-amber-300 font-semibold">
               Sample preview trend
@@ -58,7 +60,7 @@ export default function RevenueChart({ data = [], isDemo = false }) {
                   <stop offset="95%" stopColor="#FF4D2D" stopOpacity={0.0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#242938" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? '#242938' : '#E2E8F0'} />
               <XAxis
                 dataKey="period"
                 stroke="#64748B"
@@ -76,13 +78,13 @@ export default function RevenueChart({ data = [], isDemo = false }) {
               <Tooltip
                 formatter={(value) => [`₹${Number(value).toLocaleString('en-IN')}`, 'Revenue']}
                 contentStyle={{
-                  backgroundColor: '#090A0E',
-                  color: '#F4F1EA',
+                  backgroundColor: isDark ? '#090A0E' : '#FFFFFF',
+                  color: isDark ? '#F4F1EA' : '#0F172A',
                   borderRadius: '10px',
-                  border: '1px solid rgba(255,255,255,0.12)',
+                  border: isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(15,23,42,0.12)',
                   fontSize: '12px'
                 }}
-                itemStyle={{ color: '#F4F1EA' }}
+                itemStyle={{ color: isDark ? '#F4F1EA' : '#0F172A' }}
               />
               <Area
                 type="monotone"

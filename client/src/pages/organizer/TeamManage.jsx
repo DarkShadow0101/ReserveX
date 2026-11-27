@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Users, UserPlus, Shield, UserX, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { UserPlus, Shield, UserX, Mail } from 'lucide-react';
 import { organizationsApi } from '../../api/organizations.api';
 import { useOrg } from '../../context/OrgContext';
+import { useToast } from '../../context/ToastContext';
 import { extractErrorMessage } from '../../utils/errors';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Badge from '../../components/ui/Badge';
@@ -12,6 +13,7 @@ import SelectDropdown from '../../components/ui/SelectDropdown';
 
 export default function TeamManage() {
   const { activeOrgId, isOwner } = useOrg();
+  const { showToast } = useToast();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -19,22 +21,26 @@ export default function TeamManage() {
 
   // Add Member Modal State
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [memberUserId, setMemberUserId] = useState('');
+  const [memberEmail, setMemberEmail] = useState('');
   const [memberRole, setMemberRole] = useState('staff');
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState(null);
 
-  async function loadMembers() {
+  // Remove Member Confirmation State
+  const [memberToRemove, setMemberToRemove] = useState(null);
+  const [removing, setRemoving] = useState(false);
+
+  async function loadMembers(silent = false) {
     if (!activeOrgId) return;
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setError(null);
       const res = await organizationsApi.getMembers(activeOrgId);
       setMembers(res.data?.members || []);
     } catch (err) {
       setError(extractErrorMessage(err, 'Failed to load organization members'));
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 
@@ -42,40 +48,55 @@ export default function TeamManage() {
     loadMembers();
   }, [activeOrgId]);
 
+  const handleCloseAddModal = () => {
+    setAddModalOpen(false);
+    setMemberEmail('');
+    setMemberRole('staff');
+    setAddError(null);
+  };
+
   const handleAddMember = async (e) => {
     e.preventDefault();
-    if (!memberUserId) return;
+    if (!memberEmail.trim()) return;
 
     try {
       setAdding(true);
       setAddError(null);
       await organizationsApi.addMember(activeOrgId, {
-        userId: memberUserId.trim(),
+        email: memberEmail.trim(),
         role: memberRole
       });
-      setAddModalOpen(false);
-      setMemberUserId('');
+      handleCloseAddModal();
       setSuccess('Team member added successfully');
-      await loadMembers();
+      showToast('Team member added to organization');
+      await loadMembers(true);
     } catch (err) {
-      setAddError(extractErrorMessage(err, 'Could not add member. Ensure User ID exists and is not already a member.'));
+      setAddError(
+        extractErrorMessage(err, 'Could not add member. Ensure this email has a ReserveX account.')
+      );
     } finally {
       setAdding(false);
     }
   };
 
-  const handleRemoveMember = async (userId, memberName) => {
-    if (!window.confirm(`Are you sure you want to remove ${memberName} from this organization?`)) {
-      return;
-    }
+  const confirmRemoveMember = async () => {
+    if (!memberToRemove) return;
 
     try {
+      setRemoving(true);
       setError(null);
-      await organizationsApi.removeMember(activeOrgId, userId);
-      setSuccess('Member removed successfully');
-      await loadMembers();
+      await organizationsApi.removeMember(activeOrgId, memberToRemove.userId);
+      setSuccess(`${memberToRemove.fullName} removed successfully`);
+      showToast(`${memberToRemove.fullName} removed from team`, 'info');
+      setMemberToRemove(null);
+      await loadMembers(true);
     } catch (err) {
-      setError(extractErrorMessage(err, 'Cannot remove member. Last-owner protection or permissions error.'));
+      setError(
+        extractErrorMessage(err, 'Cannot remove member. Last-owner protection or permissions error.')
+      );
+      setMemberToRemove(null);
+    } finally {
+      setRemoving(false);
     }
   };
 
@@ -115,7 +136,7 @@ export default function TeamManage() {
       )}
 
       {loading ? (
-        <LoadingSpinner theme="dark" text="Retrieving team members..." />
+        <LoadingSpinner text="Retrieving team members..." />
       ) : (
         <div className="bg-[#12151E] rounded-2xl border border-white/10 overflow-hidden">
           <div className="overflow-x-auto">
@@ -139,12 +160,14 @@ export default function TeamManage() {
                         </div>
                         <div>
                           <p className="font-bold text-white">{u.fullName || 'User'}</p>
-                          <span className="text-[10px] text-slate-400 font-mono">ID: {u._id || u.id}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            Joined {m.joinedAt ? new Date(m.joinedAt).toLocaleDateString() : '—'}
+                          </span>
                         </div>
                       </td>
                       <td className="py-4 px-4 text-slate-300 font-medium">{u.email}</td>
                       <td className="py-4 px-4">
-                        <Badge variant={m.role === 'owner' ? 'default' : 'neutral'} theme="dark" dot={true}>
+                        <Badge variant={m.role === 'owner' ? 'default' : 'neutral'} dot={true}>
                           {m.role?.toUpperCase()}
                         </Badge>
                       </td>
@@ -152,8 +175,14 @@ export default function TeamManage() {
                         {isOwner && (
                           <button
                             type="button"
-                            onClick={() => handleRemoveMember(u._id || u.id, u.fullName)}
-                            className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/15 transition-colors cursor-pointer"
+                            onClick={() =>
+                              setMemberToRemove({
+                                userId: u._id || u.id,
+                                fullName: u.fullName || u.email
+                              })
+                            }
+                            aria-label={`Remove ${u.fullName || u.email}`}
+                            className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/15 transition-colors cursor-pointer"
                             title="Remove member"
                           >
                             <UserX className="w-4 h-4" />
@@ -172,10 +201,9 @@ export default function TeamManage() {
       {/* Add Member Modal */}
       <Modal
         isOpen={addModalOpen}
-        onClose={() => setAddModalOpen(false)}
+        onClose={handleCloseAddModal}
         title="Add Organization Member"
-        description="Invite an existing user by their ReserveX User ID to manage events or scan passes."
-        theme="dark"
+        description="Invite an existing registered ReserveX user by their email address."
       >
         <form onSubmit={handleAddMember} className="space-y-4">
           {addError && (
@@ -185,12 +213,14 @@ export default function TeamManage() {
           )}
 
           <Input
-            label="User MongoDB ID"
+            label="Member Email Address"
+            type="email"
             required
-            placeholder="e.g. 673294ab12e0931289cf0021"
-            value={memberUserId}
-            onChange={(e) => setMemberUserId(e.target.value)}
-            helperText="Users can copy their ID from their profile or registration."
+            icon={Mail}
+            placeholder="e.g. staff@example.com"
+            value={memberEmail}
+            onChange={(e) => setMemberEmail(e.target.value)}
+            helperText="The user must have registered an account on ReserveX."
           />
 
           <div>
@@ -202,17 +232,16 @@ export default function TeamManage() {
               onChange={setMemberRole}
               options={[
                 { value: 'staff', label: 'Staff (Event creation, editing, QR check-in)' },
-                { value: 'owner', label: 'Owner (Full admin & billing control)' }
+                { value: 'owner', label: 'Owner (Full admin & team control)' }
               ]}
               icon={Shield}
-              theme="dark"
               variant="boxed"
               ariaLabel="Select member role"
             />
           </div>
 
           <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
-            <Button variant="outline" size="sm" onClick={() => setAddModalOpen(false)}>
+            <Button variant="outline" size="sm" onClick={handleCloseAddModal}>
               Cancel
             </Button>
             <Button type="submit" variant="primary" size="sm" loading={adding}>
@@ -220,6 +249,39 @@ export default function TeamManage() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Remove Member Confirmation Modal */}
+      <Modal
+        isOpen={!!memberToRemove}
+        onClose={() => !removing && setMemberToRemove(null)}
+        title="Remove Team Member"
+        description="This action revokes their organizer access for this workspace."
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-300">
+            Are you sure you want to remove <strong>{memberToRemove?.fullName}</strong> from this organization?
+          </p>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={removing}
+              onClick={() => setMemberToRemove(null)}
+            >
+              Keep Member
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              loading={removing}
+              onClick={confirmRemoveMember}
+            >
+              Remove Member
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

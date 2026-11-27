@@ -96,7 +96,7 @@ export default function EventsManage() {
 
       {/* Events Table */}
       {loading ? (
-        <LoadingSpinner theme="dark" text="Loading events..." />
+        <LoadingSpinner text="Loading events..." />
       ) : filteredEvents.length > 0 ? (
         <div className="bg-[#12151E] rounded-2xl border border-white/10 overflow-hidden">
           <div className="overflow-x-auto">
@@ -147,7 +147,7 @@ export default function EventsManage() {
                       </td>
 
                       <td className="py-4 px-4">
-                        <Badge variant={ev.status} theme="dark" dot={true}>
+                        <Badge variant={ev.status} dot={true}>
                           {ev.status === 'published' ? 'Published' : ev.status}
                         </Badge>
                       </td>

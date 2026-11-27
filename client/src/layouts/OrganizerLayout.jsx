@@ -23,7 +23,7 @@ export default function OrganizerLayout() {
   if (authLoading || orgLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0D0F14]">
-        <LoadingSpinner theme="dark" text="Connecting to ReserveX Organizer Studio..." size="lg" />
+        <LoadingSpinner text="Connecting to ReserveX Organizer Studio..." size="lg" />
       </div>
     );
   }

@@ -500,5 +500,38 @@ describe('Payments & Razorpay Integration API (/api/payments)', () => {
       const bookingInDb = await Booking.findById(raceBookingId);
       expect(bookingInDb.status).toBe('CONFIRMED');
     });
+
+    it('POST /api/payments/demo-complete should complete sandbox order_test_* in non-production and return 403 in production', async () => {
+      const demoBook = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${customer.token}`)
+        .send({ eventId, items: [{ ticketTypeId: ticketTier, quantity: 1 }] });
+      const demoBookingId = demoBook.body.data.booking._id;
+      createdBookingIds.push(demoBookingId);
+
+      const demoOrderRes = await request(app)
+        .post('/api/payments/create-order')
+        .set('Authorization', `Bearer ${customer.token}`)
+        .send({ bookingId: demoBookingId });
+      const demoOrderId = demoOrderRes.body.data.order.orderId;
+      expect(demoOrderId.startsWith('order_test_')).toBe(true);
+
+      const prevEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      const prodBlock = await request(app)
+        .post('/api/payments/demo-complete')
+        .set('Authorization', `Bearer ${customer.token}`)
+        .send({ bookingId: demoBookingId, razorpayOrderId: demoOrderId });
+      process.env.NODE_ENV = prevEnv;
+      expect(prodBlock.statusCode).toBe(403);
+
+      const okRes = await request(app)
+        .post('/api/payments/demo-complete')
+        .set('Authorization', `Bearer ${customer.token}`)
+        .send({ bookingId: demoBookingId, razorpayOrderId: demoOrderId });
+      expect(okRes.statusCode).toBe(200);
+      expect(okRes.body.data.booking.status).toBe('CONFIRMED');
+      expect(okRes.body.data.tickets).toHaveLength(1);
+    });
   });
 });

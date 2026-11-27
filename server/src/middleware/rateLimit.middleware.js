@@ -1,11 +1,13 @@
 const rateLimit = require('express-rate-limit');
 
 const isTest = () => process.env.NODE_ENV === 'test';
+const isProd = () => process.env.NODE_ENV === 'production';
 
-// 1. Strict limiter for authentication routes (/register, /login) against credential stuffing
+// 1. Strict limiter for authentication routes (/register, /login) against brute-force attacks
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 15,
+  max: () => (isProd() ? 20 : 100),
+  skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
   skip: isTest,
