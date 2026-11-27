@@ -3,16 +3,18 @@ const router = express.Router();
 
 const paymentController = require('../controllers/payment.controller');
 const { authMiddleware } = require('../middleware/auth.middleware');
+const { bookingLimiter } = require('../middleware/rateLimit.middleware');
 const validate = require('../middleware/validate.middleware');
 const { createOrderSchema, verifyPaymentSchema } = require('../validators/payment.validator');
 
-// Razorpay Server Webhook (Does NOT use authMiddleware, verified by HMAC-SHA256 signature)
+// Razorpay Server Webhook (Does NOT use authMiddleware or user rate limits, verified by HMAC-SHA256)
 router.post('/webhook', paymentController.handleWebhook);
 
 // Protected Customer Payment Endpoints
 router.post(
   '/create-order',
   authMiddleware,
+  bookingLimiter,
   validate(createOrderSchema),
   paymentController.createPaymentOrder
 );

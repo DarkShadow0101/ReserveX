@@ -135,4 +135,14 @@ describe('Auth API (/api/auth)', () => {
       expect(res.body.user.password).toBeUndefined();
     });
   });
+
+  describe('POST /api/auth/logout', () => {
+    it('should clear the session cookie and return 200', async () => {
+      const res = await request(app).post('/api/auth/logout');
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.headers['set-cookie']).toBeDefined();
+    });
+  });
 });

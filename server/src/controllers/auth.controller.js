@@ -25,6 +25,17 @@ function generateToken(user) {
   );
 }
 
+// Shared production-hardened cookie flags (cross-site HTTPS needs SameSite=None + Secure)
+function getCookieOptions() {
+  const isProd = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  };
+}
+
 async function RegisterUser(req, res, next) {
   try {
     // Do NOT read role from req.body so users cannot register themselves as 'owner'
@@ -46,10 +57,10 @@ async function RegisterUser(req, res, next) {
       password: hash
     });
 
-    // 4. Sign expiring token, set cookie, and return sanitized user + token
+    // 4. Sign expiring token, set secure cookie, and return sanitized user + token
     const token = generateToken(user);
 
-    res.cookie('token', token, { httpOnly: true });
+    res.cookie('token', token, getCookieOptions());
 
     res.status(201).json({
       success: true,
@@ -78,7 +89,7 @@ async function loginUser(req, res, next) {
 
     const token = generateToken(user);
 
-    res.cookie('token', token, { httpOnly: true });
+    res.cookie('token', token, getCookieOptions());
 
     res.status(200).json({
       success: true,
@@ -89,6 +100,16 @@ async function loginUser(req, res, next) {
   } catch (err) {
     next(err);
   }
+}
+
+async function logoutUser(req, res) {
+  const { maxAge, ...clearOpts } = getCookieOptions();
+  res.clearCookie('token', clearOpts);
+
+  return res.status(200).json({
+    success: true,
+    message: 'Logged out successfully'
+  });
 }
 
 async function getMe(req, res, next) {
@@ -103,4 +124,4 @@ async function getMe(req, res, next) {
   }
 }
 
-module.exports = { RegisterUser, loginUser, getMe };
+module.exports = { RegisterUser, loginUser, logoutUser, getMe };

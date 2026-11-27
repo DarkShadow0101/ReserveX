@@ -10,6 +10,7 @@ const { registerSchema, loginSchema } = require('../validators/auth.validator');
 // Public routes: Rate Limiter -> Zod Validation -> Controller
 router.post('/register', authLimiter, validate(registerSchema), authController.RegisterUser);
 router.post('/login', authLimiter, validate(loginSchema), authController.loginUser);
+router.post('/logout', authController.logoutUser);
 
 // Protected route: Verify JWT -> Controller
 router.get('/me', authMiddleware, authController.getMe);

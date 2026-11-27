@@ -11,25 +11,47 @@ const ticketTypeRoutes = require('./routes/ticketType.routes');
 const bookingRoutes = require('./routes/booking.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const ticketRoutes = require('./routes/ticket.routes');
+const { apiLimiter } = require('./middleware/rateLimit.middleware');
 const AppError = require('./utils/errors');
 const errorHandler = require('./middleware/error.middleware');
 
 const app = express();
 
-// Security HTTP headers
+// Trust the first reverse proxy hop (Render, Vercel, Nginx) so rate-limiters see real client IPs
+app.set('trust proxy', 1);
+
+// Hide Express stack fingerprint and apply secure HTTP response headers
+app.disable('x-powered-by');
 app.use(helmet());
 
-// Enable CORS (credentials: true allows cookies to be sent across origins)
+// Parse comma-separated allowed CORS origins (normalizing trailing slashes)
+const rawOrigins = process.env.CLIENT_URL || process.env.CORS_ORIGIN || 'http://localhost:5173';
+const allowedOrigins = rawOrigins
+  .split(',')
+  .map((origin) => origin.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: (requestOrigin, callback) => {
+      // Allow non-browser / server-to-server calls (webhooks, UptimeRobot, curl)
+      if (!requestOrigin) {
+        return callback(null, true);
+      }
+      const normalized = requestOrigin.replace(/\/+$/, '');
+      if (allowedOrigins.includes(normalized)) {
+        return callback(null, true);
+      }
+      return callback(new AppError('Origin not allowed by CORS', 403));
+    },
     credentials: true
   })
 );
 
-// Parse incoming JSON bodies (capturing rawBody for webhook cryptographic verification) and cookies
+// Parse JSON with explicit size ceiling and capture rawBuffer for Razorpay webhook HMAC verification
 app.use(
   express.json({
+    limit: '100kb',
     verify: (req, res, buf) => {
       req.rawBody = buf;
     }
@@ -37,12 +59,15 @@ app.use(
 );
 app.use(cookieParser());
 
-// Root test route
+// Apply baseline API rate limiting across all /api routes (skips webhooks & test environment)
+app.use('/api', apiLimiter);
+
+// Root status check
 app.get('/', (req, res) => {
   res.send('ReserveX API is running');
 });
 
-// Routes
+// Feature Routes
 app.use('/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/organizations', organizationRoutes);

@@ -79,7 +79,9 @@ async function getPublicEvents({ search, organizationId, page = 1, limit = 20 } 
   }
 
   if (search && search.trim()) {
-    const searchRegex = new RegExp(search.trim(), 'i');
+    // Escape regex metacharacters to protect MongoDB from ReDoS / invalid pattern crashes
+    const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const searchRegex = new RegExp(escaped, 'i');
     filter.$or = [
       { title: searchRegex },
       { venue: searchRegex },

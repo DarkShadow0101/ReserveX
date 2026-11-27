@@ -3,14 +3,15 @@ const router = express.Router();
 
 const bookingController = require('../controllers/booking.controller');
 const { authMiddleware } = require('../middleware/auth.middleware');
+const { bookingLimiter } = require('../middleware/rateLimit.middleware');
 const validate = require('../middleware/validate.middleware');
 const { createBookingSchema } = require('../validators/booking.validator');
 
 // All booking operations require an authenticated user
 router.use(authMiddleware);
 
-// POST /api/bookings — Reserve temporary booking hold
-router.post('/', validate(createBookingSchema), bookingController.createBookingHold);
+// POST /api/bookings — Reserve temporary booking hold (rate-limited against hoarding)
+router.post('/', bookingLimiter, validate(createBookingSchema), bookingController.createBookingHold);
 
 // GET /api/bookings/my — List current user's bookings
 // NOTE: /my MUST be mounted before /:id to avoid treating "my" as an :id parameter
