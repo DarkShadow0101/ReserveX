@@ -139,7 +139,7 @@ export default function Checkout() {
             email: booking.user?.email
           },
           theme: {
-            color: '#5B4CF2'
+            color: '#FF4D2D'
           }
         };
 
@@ -176,10 +176,10 @@ export default function Checkout() {
         <div className="w-16 h-16 rounded-full bg-rose-500/15 border border-rose-400/30 text-rose-400 flex items-center justify-center mx-auto">
           <AlertTriangle className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-serif font-bold text-white">Checkout Error</h2>
+        <h2 className="text-2xl font-sans font-bold text-white">Checkout Error</h2>
         <p className="text-sm text-slate-400">{error}</p>
         <Link to="/events" className="inline-block pt-2">
-          <Button variant="primary" size="md" className="bg-brand-purple hover:bg-indigo-500">
+          <Button variant="primary" size="md" className="bg-[#FF4D2D] hover:bg-[#E63E20]">
             Browse Events
           </Button>
         </Link>
@@ -190,29 +190,29 @@ export default function Checkout() {
   if (success || booking?.status === 'CONFIRMED') {
     return (
       <div className="pt-32 pb-24 max-w-xl mx-auto px-4 text-center space-y-6">
-        <div className="w-20 h-20 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-400 flex items-center justify-center mx-auto">
+        <div className="w-20 h-20 rounded-full bg-[#10B981]/15 border border-[#10B981]/30 text-[#10B981] flex items-center justify-center mx-auto">
           <CheckCircle2 className="w-10 h-10" />
         </div>
         <div className="space-y-2">
-          <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">
+          <span className="font-mono text-xs font-bold uppercase tracking-widest text-[#10B981]">
             Payment Verified & Tickets Issued
           </span>
-          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-white">
+          <h1 className="font-display uppercase text-4xl sm:text-5xl font-bold text-white">
             Booking Confirmed
           </h1>
           <p className="text-sm text-slate-300 max-w-md mx-auto">
-            Your booking <span className="font-mono font-bold text-indigo-300">{booking.bookingReference}</span> is confirmed. Cryptographically signed QR tickets are ready in your digital wallet.
+            Your booking <span className="font-mono font-bold text-[#FF4D2D]">{booking.bookingReference}</span> is confirmed. Your QR gate passes are ready in My Tickets.
           </p>
         </div>
 
         <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
           <Link to="/my-tickets">
-            <Button variant="primary" size="lg" className="w-full sm:w-auto bg-brand-purple hover:bg-indigo-500 shadow-glow">
+            <Button variant="primary" size="lg" className="w-full sm:w-auto bg-[#FF4D2D] hover:bg-[#E63E20] shadow-glow">
               View My Tickets <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>
           <Link to="/events">
-            <Button variant="outline" size="lg" className="w-full sm:w-auto bg-white/[0.05] border-white/20 text-white hover:bg-white/10">
+            <Button variant="outline" size="lg" className="w-full sm:w-auto bg-white/[0.05] border-white/15 text-white hover:bg-white/10">
               Explore More Events
             </Button>
           </Link>
@@ -227,16 +227,16 @@ export default function Checkout() {
         <div className="w-16 h-16 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-400 flex items-center justify-center mx-auto">
           <Clock className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-serif font-bold text-white">
-          {booking?.status === 'CANCELLED' ? 'Booking Cancelled' : 'Booking Hold Expired'}
+        <h2 className="text-2xl font-sans font-bold text-white">
+          {booking?.status === 'CANCELLED' ? 'Booking Cancelled' : 'Reservation Time Expired'}
         </h2>
         <p className="text-sm text-slate-400">
           {booking?.status === 'CANCELLED'
-            ? 'This reservation was cancelled and its tickets were released back to inventory.'
-            : 'The 10-minute hold window for this reservation has expired, and the tickets have been safely released.'}
+            ? 'This reservation was cancelled and your selected seats were released.'
+            : 'The 10-minute checkout window expired and the seats were released.'}
         </p>
         <Link to={`/events/${booking.event?._id || booking.event}`} className="inline-block pt-2">
-          <Button variant="primary" size="md" className="bg-brand-purple hover:bg-indigo-500">
+          <Button variant="primary" size="md" className="bg-[#FF4D2D] hover:bg-[#E63E20]">
             Reserve Again
           </Button>
         </Link>
@@ -248,22 +248,22 @@ export default function Checkout() {
     <div className="pt-28 pb-24 max-w-4xl mx-auto px-4 sm:px-6 space-y-8">
       {/* Booking Progress Steps */}
       <div className="flex items-center justify-between text-xs font-semibold border-b border-white/10 pb-5">
-        <div className="flex items-center gap-2 text-emerald-400">
-          <span className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-[11px]">
+        <div className="flex items-center gap-2 text-[#10B981]">
+          <span className="font-mono w-6 h-6 rounded-full bg-[#10B981]/20 border border-[#10B981]/40 flex items-center justify-center text-[11px]">
             1
           </span>
           <span>Tickets Selected</span>
         </div>
         <div className="flex-1 h-[1px] bg-white/15 mx-3" />
         <div className="flex items-center gap-2 text-white">
-          <span className="w-6 h-6 rounded-full bg-brand-purple text-white flex items-center justify-center text-[11px] shadow-glow">
+          <span className="font-mono w-6 h-6 rounded-full bg-[#FF4D2D] text-white flex items-center justify-center text-[11px] shadow-glow">
             2
           </span>
-          <span>Hold & Payment</span>
+          <span>Payment</span>
         </div>
         <div className="flex-1 h-[1px] bg-white/15 mx-3" />
         <div className="flex items-center gap-2 text-slate-500">
-          <span className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[11px]">
+          <span className="font-mono w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[11px]">
             3
           </span>
           <span>QR Tickets</span>
@@ -271,24 +271,24 @@ export default function Checkout() {
       </div>
 
       {/* Hold Expiry Countdown Banner */}
-      <div className="bg-amber-500/10 border border-amber-400/30 rounded-2xl p-5 flex items-center justify-between gap-4">
+      <div className="bg-[#101219] border border-amber-400/35 rounded-2xl p-5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/30 text-amber-300 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-400/30 text-amber-300 flex items-center justify-center shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-white">Tickets Reserved on Hold</h4>
-            <p className="text-xs text-slate-300">
-              Complete payment before your hold expires to lock in your passes.
+            <h4 className="text-sm font-bold text-white">Seats Held for Checkout</h4>
+            <p className="text-xs text-slate-400">
+              Complete payment before the timer runs out to confirm your passes.
             </p>
           </div>
         </div>
 
         <div className="text-right shrink-0">
-          <span className="block text-2xl font-mono font-extrabold text-amber-300">
+          <span className="block text-2xl font-mono font-bold text-amber-300">
             {formattedTime}
           </span>
-          <span className="block text-[10px] uppercase font-bold text-slate-400">Time Left</span>
+          <span className="block font-mono text-[10px] uppercase font-semibold text-slate-400">Time Left</span>
         </div>
       </div>
 
@@ -305,34 +305,34 @@ export default function Checkout() {
       {/* Order Review & Payment Card */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
         <div className="md:col-span-7 space-y-6">
-          <div className="bg-[#12172A]/90 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-white/10 space-y-6">
+          <div className="bg-[#101219] rounded-2xl p-6 sm:p-8 border border-white/10 space-y-6">
             <div className="border-b border-white/10 pb-4">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Booking Reference
               </span>
-              <p className="font-mono text-xl font-extrabold text-indigo-300 mt-0.5">
+              <p className="font-mono text-xl font-bold text-[#FF4D2D] mt-0.5">
                 {booking.bookingReference}
               </p>
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-2xl font-serif font-bold text-white">
+              <h3 className="text-2xl font-sans font-bold text-white">
                 {booking.event?.title || 'Live Event Ticket'}
               </h3>
               <div className="space-y-1.5 text-xs text-slate-300">
                 <p className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-indigo-300" />
+                  <Calendar className="w-3.5 h-3.5 text-[#FF4D2D]" />
                   {formatEventDate(booking.event?.startsAt)}
                 </p>
                 <p className="flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-brand-coral" />
+                  <MapPin className="w-3.5 h-3.5 text-slate-400" />
                   {booking.event?.venue || 'Venue TBD'}
                 </p>
               </div>
             </div>
 
             <div className="space-y-3 pt-2">
-              <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <h4 className="font-mono text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Ticket Breakdown
               </h4>
               <div className="divide-y divide-white/10">
@@ -340,11 +340,11 @@ export default function Checkout() {
                   <div key={idx} className="py-3 flex items-center justify-between text-sm">
                     <div>
                       <p className="font-semibold text-white">{item.name}</p>
-                      <p className="text-xs text-slate-400">
+                      <p className="font-mono text-xs text-slate-400">
                         {item.quantity} × {formatPaiseToINR(item.pricePerUnit)}
                       </p>
                     </div>
-                    <span className="font-bold text-white">
+                    <span className="font-mono font-bold text-white">
                       {formatPaiseToINR(item.subtotal)}
                     </span>
                   </div>
@@ -355,21 +355,21 @@ export default function Checkout() {
         </div>
 
         <div className="md:col-span-5 space-y-6">
-          <div className="bg-[#12172A]/95 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-indigo-400/25 shadow-2xl space-y-6">
-            <h3 className="text-xl font-serif font-bold text-white">Payment Summary</h3>
+          <div className="bg-[#101219] rounded-2xl p-6 sm:p-8 border border-white/15 shadow-card space-y-6">
+            <h3 className="text-xl font-sans font-bold text-white">Payment Summary</h3>
 
             <div className="space-y-3 text-sm">
               <div className="flex justify-between text-slate-300">
                 <span>Subtotal</span>
-                <span>{formatPaiseToINR(booking.totalAmount)}</span>
+                <span className="font-mono">{formatPaiseToINR(booking.totalAmount)}</span>
               </div>
               <div className="flex justify-between text-slate-300">
                 <span>Convenience Fee</span>
-                <span className="text-emerald-400 font-medium">FREE</span>
+                <span className="font-mono text-[#10B981] font-medium">FREE</span>
               </div>
               <div className="border-t border-white/10 pt-3 flex justify-between items-baseline">
                 <span className="font-bold text-white text-base">Total Amount</span>
-                <span className="text-2xl font-black text-indigo-300">
+                <span className="font-mono text-2xl font-bold text-white">
                   {formatPaiseToINR(booking.totalAmount)}
                 </span>
               </div>
@@ -382,7 +382,7 @@ export default function Checkout() {
                 loading={processingPayment}
                 disabled={processingPayment || isExpired}
                 onClick={handlePayNow}
-                className="w-full rounded-2xl bg-brand-purple hover:bg-indigo-500 shadow-glow py-3.5 text-base gap-2"
+                className="w-full rounded-xl bg-[#FF4D2D] hover:bg-[#E63E20] shadow-glow py-3.5 text-base gap-2"
               >
                 <CreditCard className="w-5 h-5" />
                 Pay with Razorpay
@@ -399,7 +399,7 @@ export default function Checkout() {
             </div>
 
             <div className="pt-2 border-t border-white/10 flex items-center justify-center gap-2 text-xs text-slate-400">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <ShieldCheck className="w-4 h-4 text-[#10B981]" />
               <span>256-bit SSL encrypted checkout</span>
             </div>
           </div>

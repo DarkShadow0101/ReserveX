@@ -59,16 +59,13 @@ export default function BookingsManage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
         <div>
-          <span className="text-xs font-bold uppercase tracking-widest text-brand-purple">
-            Sales & Orders
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-slate-900 mt-0.5">
+          <h1 className="text-2xl sm:text-3xl font-sans font-bold tracking-tight text-white">
             Event Bookings
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Real-time overview of customer holds, confirmed sales, and payments.
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Overview of customer reservations, confirmed sales, and payments.
           </p>
         </div>
 
@@ -79,7 +76,7 @@ export default function BookingsManage() {
               onChange={setSelectedEventId}
               options={events.map((ev) => ({ value: ev._id, label: ev.title }))}
               icon={Calendar}
-              theme="light"
+              theme="dark"
               variant="boxed"
               menuAlign="right"
               ariaLabel="Select event"
@@ -89,13 +86,13 @@ export default function BookingsManage() {
       </div>
 
       {loading ? (
-        <LoadingSpinner text="Retrieving booking records..." />
+        <LoadingSpinner theme="dark" text="Retrieving booking records..." />
       ) : bookings.length > 0 ? (
-        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-soft overflow-hidden">
+        <div className="bg-[#12151E] rounded-2xl border border-white/10 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider">
+                <tr className="border-b border-white/10 bg-[#090A0E] text-slate-400 font-mono text-[10px] font-semibold uppercase tracking-wider">
                   <th className="py-3.5 px-6">Reference</th>
                   <th className="py-3.5 px-4">Customer</th>
                   <th className="py-3.5 px-4">Tickets</th>
@@ -104,31 +101,31 @@ export default function BookingsManage() {
                   <th className="py-3.5 px-6 text-right">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-white/5">
                 {bookings.map((bk) => (
-                  <tr key={bk._id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-4 px-6 font-mono font-bold text-brand-purple">
+                  <tr key={bk._id} className="hover:bg-white/[0.03] transition-colors">
+                    <td className="py-4 px-6 font-mono font-bold text-[#FF4D2D]">
                       {bk.bookingReference}
                     </td>
-                    <td className="py-4 px-4 font-semibold text-slate-900">
+                    <td className="py-4 px-4 font-semibold text-white">
                       <p>{bk.user?.fullName || 'Customer'}</p>
                       <p className="text-[11px] font-normal text-slate-400">{bk.user?.email}</p>
                     </td>
-                    <td className="py-4 px-4 text-slate-600">
+                    <td className="py-4 px-4 text-slate-300 font-mono">
                       {bk.items?.map((item, idx) => (
                         <span key={idx} className="block">
-                          {item.name} x {item.quantity}
+                          {item.name} × {item.quantity}
                         </span>
                       ))}
                     </td>
-                    <td className="py-4 px-4 font-bold text-slate-900">
+                    <td className="py-4 px-4 font-mono font-bold text-white">
                       {formatPaiseToINR(bk.totalAmount)}
                     </td>
-                    <td className="py-4 px-4 text-slate-500">
+                    <td className="py-4 px-4 text-slate-400 font-mono">
                       {formatEventDate(bk.createdAt, 'dd MMM yyyy • hh:mm a')}
                     </td>
                     <td className="py-4 px-6 text-right">
-                      <Badge variant={bk.status} dot={true}>
+                      <Badge variant={bk.status} theme="dark" dot={true}>
                         {bk.status}
                       </Badge>
                     </td>
@@ -139,9 +136,9 @@ export default function BookingsManage() {
           </div>
         </div>
       ) : (
-        <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200 p-8 space-y-3">
-          <h3 className="text-base font-bold text-slate-800">No bookings found</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+        <div className="text-center py-20 bg-[#12151E] rounded-2xl border border-dashed border-white/10 p-8 space-y-3">
+          <h3 className="text-base font-bold text-white">No bookings found</h3>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto">
             There are no booking records for this event yet.
           </p>
         </div>

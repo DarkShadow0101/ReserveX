@@ -47,37 +47,34 @@ export default function EventsManage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
         <div>
-          <span className="text-xs font-bold uppercase tracking-widest text-brand-purple">
-            Event Management
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-slate-900 mt-0.5">
+          <h1 className="text-2xl sm:text-3xl font-sans font-bold tracking-tight text-white">
             Organization Events
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Manage your draft, published, and completed events for {activeOrg?.name}.
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Manage draft, published, and completed events for {activeOrg?.name}.
           </p>
         </div>
 
         <Link to="/organizer/events/new">
-          <Button variant="primary" size="md" className="rounded-2xl gap-2 shadow-sm">
+          <Button variant="primary" size="md" className="rounded-xl gap-2">
             <Plus className="w-4 h-4" /> Create New Event
           </Button>
         </Link>
       </div>
 
       {/* Filters and Search Bar */}
-      <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-soft flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-[#12151E] p-4 rounded-2xl border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
           {['all', 'published', 'draft', 'cancelled'].map((st) => (
             <button
               key={st}
               onClick={() => setFilterStatus(st)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold capitalize transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg font-mono text-xs font-semibold capitalize transition-colors cursor-pointer ${
                 filterStatus === st
-                  ? 'bg-brand-purple text-white shadow-sm'
-                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                  ? 'bg-[#FF4D2D] text-white'
+                  : 'bg-[#090A0E] text-slate-300 border border-white/10 hover:text-white'
               }`}
             >
               {st}
@@ -92,20 +89,20 @@ export default function EventsManage() {
             placeholder="Search events..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:border-brand-purple"
+            className="w-full bg-[#090A0E] border border-white/15 text-xs text-white placeholder-slate-500 rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:border-[#FF4D2D]"
           />
         </div>
       </div>
 
-      {/* Events Table / Card List */}
+      {/* Events Table */}
       {loading ? (
-        <LoadingSpinner text="Loading events..." />
+        <LoadingSpinner theme="dark" text="Loading events..." />
       ) : filteredEvents.length > 0 ? (
-        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-soft overflow-hidden">
+        <div className="bg-[#12151E] rounded-2xl border border-white/10 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider">
+                <tr className="border-b border-white/10 bg-[#090A0E] text-slate-400 font-mono text-[10px] font-semibold uppercase tracking-wider">
                   <th className="py-3.5 px-6">Event</th>
                   <th className="py-3.5 px-4">Date & Time</th>
                   <th className="py-3.5 px-4">Location</th>
@@ -113,44 +110,44 @@ export default function EventsManage() {
                   <th className="py-3.5 px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-white/5">
                 {filteredEvents.map((ev) => {
                   const img = getEventImage(ev);
                   return (
-                    <tr key={ev._id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-4 px-6 flex items-center gap-3.5 font-bold text-slate-900">
+                    <tr key={ev._id} className="hover:bg-white/[0.03] transition-colors">
+                      <td className="py-4 px-6 flex items-center gap-3.5 font-bold text-white">
                         <img
                           src={img}
                           alt={ev.title}
                           onError={(e) => {
                             e.currentTarget.src = FALLBACK_EVENT_IMAGE;
                           }}
-                          className="w-12 h-12 rounded-2xl object-cover shrink-0 shadow-sm"
+                          className="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/10"
                         />
                         <div>
-                          <p className="text-sm font-bold text-slate-900 line-clamp-1">{ev.title}</p>
+                          <p className="text-sm font-bold text-white line-clamp-1">{ev.title}</p>
                           <span className="text-[11px] font-normal text-slate-400 line-clamp-1">
                             {ev.description || 'No description provided'}
                           </span>
                         </div>
                       </td>
 
-                      <td className="py-4 px-4 text-slate-600">
-                        <div className="flex items-center gap-1.5 font-medium">
+                      <td className="py-4 px-4 text-slate-300 font-mono">
+                        <div className="flex items-center gap-1.5">
                           <Calendar className="w-3.5 h-3.5 text-slate-400" />
                           <span>{formatEventDate(ev.startsAt, 'dd MMM yyyy • hh:mm a')}</span>
                         </div>
                       </td>
 
-                      <td className="py-4 px-4 text-slate-600">
+                      <td className="py-4 px-4 text-slate-300">
                         <div className="flex items-center gap-1.5 font-medium">
-                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                          <MapPin className="w-3.5 h-3.5 text-[#FF4D2D]" />
                           <span className="truncate max-w-[140px]">{ev.venue || 'Venue TBD'}</span>
                         </div>
                       </td>
 
                       <td className="py-4 px-4">
-                        <Badge variant={ev.status} dot={true}>
+                        <Badge variant={ev.status} theme="dark" dot={true}>
                           {ev.status === 'published' ? 'Published' : ev.status}
                         </Badge>
                       </td>
@@ -167,7 +164,7 @@ export default function EventsManage() {
                             <Link to={`/events/${ev._id}`} target="_blank">
                               <button
                                 type="button"
-                                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+                                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
                                 title="View public page"
                               >
                                 <ArrowUpRight className="w-4 h-4" />
@@ -184,12 +181,12 @@ export default function EventsManage() {
           </div>
         </div>
       ) : (
-        <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200 p-8 space-y-4">
-          <div className="w-16 h-16 rounded-full bg-indigo-50 text-brand-purple flex items-center justify-center mx-auto">
+        <div className="text-center py-20 bg-[#12151E] rounded-2xl border border-dashed border-white/10 p-8 space-y-4">
+          <div className="w-16 h-16 rounded-full bg-[#FF4D2D]/15 text-[#FF4D2D] flex items-center justify-center mx-auto">
             <Calendar className="w-8 h-8" />
           </div>
-          <h3 className="text-lg font-bold text-slate-800">No events found</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+          <h3 className="text-lg font-bold text-white">No events found</h3>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto">
             {search ? 'Try adjusting your search criteria.' : 'Create your first event to get started.'}
           </p>
           <Link to="/organizer/events/new">

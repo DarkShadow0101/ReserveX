@@ -19,8 +19,8 @@ export default function OrganizerLayout() {
 
   if (authLoading || orgLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-brand-navy">
-        <LoadingSpinner theme="dark" text="Connecting to ReserveX Organizer Network..." size="lg" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0D0F14]">
+        <LoadingSpinner theme="dark" text="Connecting to ReserveX Organizer Studio..." size="lg" />
       </div>
     );
   }
@@ -47,28 +47,28 @@ export default function OrganizerLayout() {
     };
 
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-card border border-slate-100 text-center space-y-6">
-          <div className="w-16 h-16 rounded-3xl bg-indigo-50 text-brand-purple flex items-center justify-center mx-auto">
+      <div className="min-h-screen bg-[#0D0F14] flex items-center justify-center p-4">
+        <div className="bg-[#12151E] rounded-2xl p-8 max-w-md w-full shadow-card border border-white/10 text-center space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-[#FF4D2D]/15 border border-[#FF4D2D]/30 text-[#FF4D2D] flex items-center justify-center mx-auto">
             <Building2 className="w-8 h-8" />
           </div>
           <div>
-            <h2 className="text-2xl font-serif font-bold text-slate-900">
-              Welcome to Organizer Portal
+            <h2 className="font-display uppercase text-2xl font-bold text-white">
+              Organizer Studio Setup
             </h2>
-            <p className="text-xs text-slate-500 mt-2">
-              To start creating events and managing ticket tiers, please set up your organization profile.
+            <p className="text-xs text-slate-400 mt-2">
+              To start creating events and managing ticket tiers, create your organization profile.
             </p>
           </div>
 
           <form onSubmit={handleQuickCreate} className="space-y-4 text-left">
             {createError && (
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700">
+              <div className="p-3 bg-rose-500/15 border border-rose-400/30 rounded-xl text-xs text-rose-200">
                 {createError}
               </div>
             )}
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-1">
+              <label className="block font-mono text-[11px] font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
                 Organization Name
               </label>
               <input
@@ -77,15 +77,15 @@ export default function OrganizerLayout() {
                 placeholder="e.g. Apex Music & Events"
                 value={newOrgName}
                 onChange={(e) => setNewOrgName(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:border-brand-purple"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#090A0E] border border-white/15 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#FF4D2D]"
               />
             </div>
-            <Button type="submit" variant="primary" size="lg" loading={creating} className="w-full rounded-2xl">
+            <Button type="submit" variant="primary" size="lg" loading={creating} className="w-full rounded-xl">
               Launch Organization <Plus className="w-4 h-4 ml-1" />
             </Button>
           </form>
 
-          <Link to="/" className="block text-xs font-semibold text-slate-400 hover:text-slate-600">
+          <Link to="/" className="block text-xs font-semibold text-slate-400 hover:text-white">
             ← Return to Customer Storefront
           </Link>
         </div>
@@ -94,7 +94,7 @@ export default function OrganizerLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex">
+    <div className="min-h-screen bg-[#0D0F14] text-[#F4F1EA] flex">
       {/* Sidebar */}
       <Sidebar
         mobileOpen={mobileSidebarOpen}
@@ -104,7 +104,7 @@ export default function OrganizerLayout() {
       {/* Mobile backdrop */}
       {mobileSidebarOpen && (
         <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 md:hidden"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-30 md:hidden"
           onClick={() => setMobileSidebarOpen(false)}
         />
       )}

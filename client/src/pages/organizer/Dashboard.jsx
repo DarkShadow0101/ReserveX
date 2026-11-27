@@ -28,7 +28,7 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 
-const CHART_COLORS = ['#5B4CF2', '#38BDF8', '#F59E0B', '#94A3B8'];
+const CHART_COLORS = ['#FF4D2D', '#10B981', '#F59E0B', '#64748B'];
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -147,7 +147,7 @@ export default function Dashboard() {
   const firstName = user?.fullName ? user.fullName.split(' ')[0] : 'Organizer';
 
   if (loading) {
-    return <LoadingSpinner text="Loading organization analytics..." size="lg" />;
+    return <LoadingSpinner theme="dark" text="Loading organization analytics..." size="lg" />;
   }
 
   return (
@@ -155,11 +155,11 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-slate-900">
-            Welcome back, {firstName}
+          <h1 className="text-2xl sm:text-3xl font-sans font-bold tracking-tight text-white">
+            Overview Dashboard
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Here is what is happening with your events across {activeOrg?.name || 'your organization'}.
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Welcome back, {firstName} — {activeOrg?.name || 'your organization'}.
           </p>
         </div>
 
@@ -167,43 +167,43 @@ export default function Dashboard() {
           <button
             type="button"
             onClick={() => setDemoMode((prev) => !prev)}
-            className={`px-3.5 py-2 rounded-2xl border text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
               demoMode
-                ? 'bg-amber-50 border-amber-300 text-amber-800 hover:bg-amber-100'
-                : 'bg-white border-slate-200/80 text-slate-600 hover:border-slate-300 hover:text-slate-900'
+                ? 'bg-amber-500/15 border-amber-400/40 text-amber-300 hover:bg-amber-500/20'
+                : 'bg-[#12151E] border-white/10 text-slate-300 hover:border-white/25 hover:text-white'
             }`}
           >
             {demoMode ? <X className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-            <span>{demoMode ? 'Exit Demo Mode' : 'Preview Demo Data'}</span>
+            <span>{demoMode ? 'Exit Sample Mode' : 'Preview Sample Data'}</span>
           </button>
 
-          <div className="px-4 py-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm text-xs font-semibold text-slate-700 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-slate-400" />
-            <span>Last 30 days</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-          </div>
+          <Link to="/organizer/check-in" className="hidden sm:inline-block">
+            <Button variant="outline" size="md" className="rounded-xl border-white/15 bg-[#12151E] text-slate-200 hover:text-white">
+              Open Gate Scanner
+            </Button>
+          </Link>
 
           <Link to="/organizer/events/new">
-            <Button variant="primary" size="md" className="rounded-2xl gap-1.5 shadow-sm">
+            <Button variant="primary" size="md" className="rounded-xl gap-1.5 shadow-sm">
               <Plus className="w-4 h-4" /> Create Event
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Unmistakable Demo Mode Banner (only when explicitly toggled on) */}
+      {/* Unmistakable Sample Mode Banner (only when explicitly toggled on) */}
       {demoMode && (
-        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-950">
+        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-400/35 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-200">
           <div className="flex items-start sm:items-center gap-2.5">
-            <Eye className="w-4 h-4 text-amber-700 shrink-0 mt-0.5 sm:mt-0" />
+            <Eye className="w-4 h-4 text-amber-300 shrink-0 mt-0.5 sm:mt-0" />
             <span>
-              <strong>Demo Mode Active:</strong> Sample metrics and charts are displayed for demonstration. Live business data is hidden.
+              <strong>Sample Preview Active:</strong> Illustrative numbers are shown. Live business records are hidden.
             </span>
           </div>
           <button
             type="button"
             onClick={() => setDemoMode(false)}
-            className="shrink-0 font-bold text-amber-900 underline hover:text-amber-700 cursor-pointer text-left"
+            className="shrink-0 font-bold text-amber-300 underline hover:text-white cursor-pointer text-left"
           >
             Return to Live Data
           </button>
@@ -213,32 +213,32 @@ export default function Dashboard() {
       {/* Four KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <KPICard
-          title="Total Revenue"
+          title="Confirmed Revenue"
           value={formatPaiseToINR(kpis.revenue)}
           trend={kpis.revenueTrend}
           icon={DollarSign}
-          iconBg="bg-indigo-50 text-brand-purple"
+          iconBg="bg-[#FF4D2D]/15 text-[#FF4D2D] border border-[#FF4D2D]/30"
         />
         <KPICard
-          title="Tickets Sold"
+          title="Tickets Issued"
           value={Number(kpis.ticketsSold).toLocaleString('en-IN')}
           trend={kpis.ticketsTrend}
           icon={Ticket}
-          iconBg="bg-blue-50 text-blue-600"
+          iconBg="bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30"
         />
         <KPICard
-          title="Active Events"
+          title="Published Events"
           value={kpis.activeEvents}
           trend={kpis.eventsTrend}
           icon={Calendar}
-          iconBg="bg-purple-50 text-purple-600"
+          iconBg="bg-white/[0.06] text-[#F4F1EA] border border-white/15"
         />
         <KPICard
           title="Total Bookings"
           value={Number(kpis.totalBookings).toLocaleString('en-IN')}
           trend={kpis.bookingsTrend}
           icon={Users}
-          iconBg="bg-sky-50 text-sky-600"
+          iconBg="bg-amber-500/15 text-amber-300 border border-amber-400/30"
         />
       </div>
 
@@ -264,22 +264,22 @@ export default function Dashboard() {
       {/* Operational Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-6">
-          <Card className="p-6 border-slate-100 shadow-soft">
+          <Card className="p-6 border-white/10 bg-[#12151E]">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-bold text-white">
                 {demoMode ? 'Sample Upcoming Events' : 'Organization Events'}
               </h3>
               <Link
                 to="/organizer/events"
-                className="text-xs font-bold text-brand-purple hover:underline flex items-center gap-1"
+                className="text-xs font-semibold text-[#FF4D2D] hover:underline flex items-center gap-1"
               >
                 See all <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
 
             {upcomingList.length === 0 ? (
-              <div className="py-12 text-center space-y-3 border border-dashed border-slate-200 rounded-2xl">
-                <p className="text-xs font-semibold text-slate-600">No events created yet</p>
+              <div className="py-12 text-center space-y-3 border border-dashed border-white/10 rounded-xl bg-[#090A0E]">
+                <p className="text-xs font-semibold text-slate-300">No events created yet</p>
                 <p className="text-xs text-slate-400">
                   Create your first event to start selling tickets.
                 </p>
@@ -290,7 +290,7 @@ export default function Dashboard() {
                 </Link>
               </div>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-white/10">
                 {upcomingList.map((ev, idx) => {
                   const img = ev.image || getEventImage(ev);
                   const dateText =
@@ -305,25 +305,25 @@ export default function Dashboard() {
                           onError={(e) => {
                             e.currentTarget.src = FALLBACK_EVENT_IMAGE;
                           }}
-                          className="w-12 h-12 rounded-2xl object-cover shrink-0"
+                          className="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/10"
                         />
                         <div className="min-w-0">
                           {demoMode ? (
-                            <p className="text-sm font-bold text-slate-900 truncate">{ev.title}</p>
+                            <p className="text-sm font-bold text-white truncate">{ev.title}</p>
                           ) : (
                             <Link
                               to={`/organizer/events/${ev._id}`}
-                              className="text-sm font-bold text-slate-900 hover:text-brand-purple transition-colors truncate block"
+                              className="text-sm font-bold text-white hover:text-[#FF4D2D] transition-colors truncate block"
                             >
                               {ev.title}
                             </Link>
                           )}
-                          <p className="text-xs text-slate-500 mt-0.5 truncate">{dateText}</p>
+                          <p className="text-xs text-slate-400 mt-0.5 truncate">{dateText}</p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-3 shrink-0">
-                        <Badge variant={ev.status} dot={true}>
+                        <Badge variant={ev.status} theme="dark" dot={true}>
                           {ev.status === 'published' ? 'Published' : ev.status || 'Draft'}
                         </Badge>
                         {!demoMode && (
@@ -331,7 +331,7 @@ export default function Dashboard() {
                             type="button"
                             onClick={() => navigate(`/organizer/events/${ev._id}`)}
                             aria-label={`Manage ${ev.title}`}
-                            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
+                            className="p-1 rounded-lg text-slate-400 hover:text-white cursor-pointer"
                           >
                             <MoreVertical className="w-4 h-4" />
                           </button>
@@ -346,35 +346,35 @@ export default function Dashboard() {
         </div>
 
         <div className="lg:col-span-6">
-          <Card className="p-6 border-slate-100 shadow-soft">
+          <Card className="p-6 border-white/10 bg-[#12151E]">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-bold text-white">
                 {demoMode ? 'Sample Recent Bookings' : 'Recent Bookings'}
               </h3>
               <Link
                 to="/organizer/bookings"
-                className="text-xs font-bold text-brand-purple hover:underline flex items-center gap-1"
+                className="text-xs font-semibold text-[#FF4D2D] hover:underline flex items-center gap-1"
               >
                 See all <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
 
             {recentBookingsList.length === 0 ? (
-              <div className="py-12 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl">
+              <div className="py-12 text-center text-xs text-slate-400 border border-dashed border-white/10 rounded-xl bg-[#090A0E]">
                 No bookings recorded for your events yet.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase">
+                    <tr className="border-b border-white/10 text-slate-400 font-mono text-[10px] font-semibold uppercase tracking-wider">
                       <th className="pb-3">Customer</th>
                       <th className="pb-3">Event</th>
                       <th className="pb-3">Amount</th>
                       <th className="pb-3 text-right">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-white/5">
                     {recentBookingsList.map((bk, idx) => {
                       const custName = bk.customer || bk.user?.fullName || 'Customer';
                       const evTitle = bk.eventTitle || bk.event?.title || bk.event || 'Event';
@@ -382,17 +382,17 @@ export default function Dashboard() {
                       const st = bk.status || 'PENDING_PAYMENT';
 
                       return (
-                        <tr key={bk.id || bk._id || idx} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="py-3.5 font-bold text-slate-900 flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-700 text-[10px] shrink-0">
+                        <tr key={bk.id || bk._id || idx} className="hover:bg-white/[0.03] transition-colors">
+                          <td className="py-3.5 font-semibold text-white flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-lg bg-white/[0.08] border border-white/10 flex items-center justify-center font-mono font-bold text-slate-200 text-[10px] shrink-0">
                               {custName[0]}
                             </div>
                             <span className="truncate max-w-[110px]">{custName}</span>
                           </td>
-                          <td className="py-3.5 text-slate-600 truncate max-w-[120px]">{evTitle}</td>
-                          <td className="py-3.5 font-semibold text-slate-900">{formatPaiseToINR(amt)}</td>
+                          <td className="py-3.5 text-slate-300 truncate max-w-[120px]">{evTitle}</td>
+                          <td className="py-3.5 font-mono font-semibold text-white">{formatPaiseToINR(amt)}</td>
                           <td className="py-3.5 text-right">
-                            <Badge variant={st} dot={true}>
+                            <Badge variant={st} theme="dark" dot={true}>
                               {st === 'CONFIRMED' ? 'Confirmed' : st === 'PENDING_PAYMENT' ? 'Pending' : st}
                             </Badge>
                           </td>
@@ -404,39 +404,6 @@ export default function Dashboard() {
               </div>
             )}
           </Card>
-        </div>
-      </div>
-
-      {/* Bottom Promotional Banner */}
-      <div className="relative rounded-3xl overflow-hidden shadow-xl bg-brand-navy p-8 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1400&q=80"
-            alt="Crowd background"
-            className="w-full h-full object-cover object-right opacity-30"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-brand-navy via-brand-navy/90 to-transparent" />
-        </div>
-
-        <div className="relative z-10 space-y-1.5">
-          <h2 className="text-xl sm:text-2xl font-serif font-bold text-white">
-            Ready to host your next big event?
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-300 font-light">
-            Create, manage and grow your events with ReserveX. Real-time ticket inventory and QR validation included.
-          </p>
-        </div>
-
-        <div className="relative z-10 shrink-0">
-          <Link to="/organizer/events/new">
-            <Button
-              variant="primary"
-              size="pill"
-              className="bg-brand-purple hover:bg-indigo-600 text-white font-semibold shadow-glow px-6"
-            >
-              Create Event <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-          </Link>
         </div>
       </div>
     </div>

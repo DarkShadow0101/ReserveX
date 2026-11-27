@@ -113,3 +113,25 @@ These may be added later, only when a measured need is shown.
    changed.
 4. `PROJECT_STATUS.md` is updated.
 5. The developer can explain the change in their own words.
+
+<!-- antislop:start -->
+## antislop
+For UI, copy, people, mobile layout, or code comments work, load the antislop skill for the task:
+- Core filter, always on: `antislop`
+- Master taxonomy (P0-P6): `antislop-master`
+- UI / visual: `antislop-ui`
+- Layout / composition: `antislop-layout`
+- Copy & text: `antislop-copywriting`
+- People: `antislop-human`
+- Mobile / responsive: `antislop-layoutmobile`
+- Mobile / native: `antislop-mobile`
+- Dashboard / data: `antislop-dashboard`
+- Forms / states: `antislop-forms`
+- Motion: `antislop-motion`
+- Navigation: `antislop-nav`
+- Authenticity: `antislop-authenticity`
+- Design system: `antislop-designsystem`
+- Imagery: `antislop-imagery`
+- Code comments: `antislop-code`
+Before starting, ask the user when antislop applies: during the work, or after it is done.
+<!-- antislop:end -->

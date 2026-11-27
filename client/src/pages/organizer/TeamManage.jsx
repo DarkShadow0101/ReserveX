@@ -81,15 +81,12 @@ export default function TeamManage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
         <div>
-          <span className="text-xs font-bold uppercase tracking-widest text-brand-purple">
-            Collaboration & Permissions
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-slate-900 mt-0.5">
+          <h1 className="text-2xl sm:text-3xl font-sans font-bold tracking-tight text-white">
             Organization Team
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
             Manage owner and staff permissions for event publishing and gate check-in.
           </p>
         </div>
@@ -99,7 +96,7 @@ export default function TeamManage() {
             variant="primary"
             size="sm"
             onClick={() => setAddModalOpen(true)}
-            className="rounded-xl gap-2 shadow-sm text-xs"
+            className="rounded-xl gap-2 text-xs"
           >
             <UserPlus className="w-4 h-4" /> Add Member
           </Button>
@@ -107,47 +104,47 @@ export default function TeamManage() {
       </div>
 
       {success && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-800 font-medium">
+        <div className="p-4 bg-[#10B981]/15 border border-[#10B981]/35 rounded-xl text-xs text-[#34D399] font-medium">
           {success}
         </div>
       )}
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 font-medium">
+        <div className="p-4 bg-rose-500/15 border border-rose-400/35 rounded-xl text-xs text-rose-200 font-medium">
           {error}
         </div>
       )}
 
       {loading ? (
-        <LoadingSpinner text="Retrieving team members..." />
+        <LoadingSpinner theme="dark" text="Retrieving team members..." />
       ) : (
-        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-soft overflow-hidden">
+        <div className="bg-[#12151E] rounded-2xl border border-white/10 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider">
+                <tr className="border-b border-white/10 bg-[#090A0E] text-slate-400 font-mono text-[10px] font-semibold uppercase tracking-wider">
                   <th className="py-3.5 px-6">Member</th>
                   <th className="py-3.5 px-4">Email</th>
                   <th className="py-3.5 px-4">Role</th>
                   <th className="py-3.5 px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-white/5">
                 {members.map((m) => {
                   const u = m.user || {};
                   return (
-                    <tr key={m.id || m._id} className="hover:bg-slate-50/60 transition-colors">
+                    <tr key={m.id || m._id} className="hover:bg-white/[0.03] transition-colors">
                       <td className="py-4 px-6 flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-700 text-xs">
+                        <div className="w-8 h-8 rounded-lg bg-white/[0.08] border border-white/10 flex items-center justify-center font-mono font-bold text-white text-xs">
                           {u.fullName ? u.fullName[0].toUpperCase() : 'U'}
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900">{u.fullName || 'User'}</p>
+                          <p className="font-bold text-white">{u.fullName || 'User'}</p>
                           <span className="text-[10px] text-slate-400 font-mono">ID: {u._id || u.id}</span>
                         </div>
                       </td>
-                      <td className="py-4 px-4 text-slate-600 font-medium">{u.email}</td>
+                      <td className="py-4 px-4 text-slate-300 font-medium">{u.email}</td>
                       <td className="py-4 px-4">
-                        <Badge variant={m.role === 'owner' ? 'default' : 'neutral'} dot={true}>
+                        <Badge variant={m.role === 'owner' ? 'default' : 'neutral'} theme="dark" dot={true}>
                           {m.role?.toUpperCase()}
                         </Badge>
                       </td>
@@ -156,7 +153,7 @@ export default function TeamManage() {
                           <button
                             type="button"
                             onClick={() => handleRemoveMember(u._id || u.id, u.fullName)}
-                            className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/15 transition-colors cursor-pointer"
                             title="Remove member"
                           >
                             <UserX className="w-4 h-4" />
@@ -178,10 +175,11 @@ export default function TeamManage() {
         onClose={() => setAddModalOpen(false)}
         title="Add Organization Member"
         description="Invite an existing user by their ReserveX User ID to manage events or scan passes."
+        theme="dark"
       >
         <form onSubmit={handleAddMember} className="space-y-4">
           {addError && (
-            <div className="p-3 bg-rose-50 text-rose-700 text-xs rounded-xl border border-rose-200">
+            <div className="p-3 bg-rose-500/15 text-rose-200 text-xs rounded-xl border border-rose-400/30">
               {addError}
             </div>
           )}
@@ -196,7 +194,7 @@ export default function TeamManage() {
           />
 
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
+            <label className="block font-mono text-[11px] font-semibold uppercase text-slate-300 mb-1.5">
               Role Permission
             </label>
             <SelectDropdown
@@ -207,13 +205,13 @@ export default function TeamManage() {
                 { value: 'owner', label: 'Owner (Full admin & billing control)' }
               ]}
               icon={Shield}
-              theme="light"
+              theme="dark"
               variant="boxed"
               ariaLabel="Select member role"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+          <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
             <Button variant="outline" size="sm" onClick={() => setAddModalOpen(false)}>
               Cancel
             </Button>

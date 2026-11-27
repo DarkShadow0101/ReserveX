@@ -8,15 +8,15 @@ export default function CustomerLayout() {
   const isHome = location.pathname === '/';
 
   return (
-    <div className="min-h-screen flex flex-col bg-brand-navy text-white relative overflow-x-hidden">
-      {/* Subtle atmospheric lighting for inner customer pages (Home provides its own full backdrop) */}
+    <div className="min-h-screen flex flex-col bg-[#060709] text-[#F4F1EA] relative overflow-x-hidden">
+      {/* Subtle warm stage horizon lighting for inner customer pages */}
       {!isHome && (
         <div
           className="pointer-events-none fixed inset-0 z-0"
           style={{
             background: [
-              'radial-gradient(circle at 15% 15%, rgba(91, 76, 242, 0.16), transparent 40%)',
-              'radial-gradient(circle at 85% 70%, rgba(255, 90, 95, 0.08), transparent 42%)'
+              'radial-gradient(ellipse 75% 45% at 50% 0%, rgba(255, 77, 45, 0.08), transparent 65%)',
+              'radial-gradient(circle at 85% 20%, rgba(56, 189, 248, 0.05), transparent 45%)'
             ].join(', ')
           }}
         />

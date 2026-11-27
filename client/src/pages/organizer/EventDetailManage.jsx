@@ -191,15 +191,15 @@ export default function EventDetailManage() {
   };
 
   if (loading) {
-    return <LoadingSpinner text="Loading event configuration..." size="lg" />;
+    return <LoadingSpinner theme="dark" text="Loading event configuration..." size="lg" />;
   }
 
   if (error && !event) {
     return (
       <div className="p-8 text-center space-y-4">
-        <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
-        <h2 className="text-xl font-bold text-slate-800">Event Not Found</h2>
-        <p className="text-xs text-slate-500">{error}</p>
+        <AlertCircle className="w-10 h-10 text-rose-400 mx-auto" />
+        <h2 className="text-xl font-bold text-white">Event Not Found</h2>
+        <p className="text-xs text-slate-400">{error}</p>
         <Link to="/organizer/events">
           <Button variant="primary" size="sm">
             Back to Events
@@ -215,7 +215,7 @@ export default function EventDetailManage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <Link
           to="/organizer/events"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back to All Events
         </Link>
@@ -235,7 +235,7 @@ export default function EventDetailManage() {
               variant="primary"
               size="sm"
               onClick={handlePublish}
-              className="bg-emerald-600 hover:bg-emerald-700 text-xs shadow-sm"
+              className="bg-[#10B981] hover:bg-emerald-600 text-[#060709] text-xs font-bold"
             >
               <CheckCircle className="w-4 h-4 mr-1" /> Publish Event
             </Button>
@@ -246,7 +246,7 @@ export default function EventDetailManage() {
               variant="outline"
               size="sm"
               onClick={handleCancel}
-              className="text-rose-600 hover:bg-rose-50 border-rose-200 text-xs"
+              className="text-rose-400 hover:bg-rose-500/15 border-rose-400/35 text-xs"
             >
               <XCircle className="w-4 h-4 mr-1" /> Cancel Event
             </Button>
@@ -256,27 +256,27 @@ export default function EventDetailManage() {
 
       {/* Notifications */}
       {successMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-800 font-medium">
+        <div className="p-4 bg-[#10B981]/15 border border-[#10B981]/35 rounded-xl text-xs text-[#34D399] font-medium">
           {successMsg}
         </div>
       )}
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 font-medium">
+        <div className="p-4 bg-rose-500/15 border border-rose-400/35 rounded-xl text-xs text-rose-200 font-medium">
           {error}
         </div>
       )}
 
       {/* Event Overview Card */}
-      <Card className="p-6 sm:p-8 border-slate-100 shadow-soft">
-        <div className="flex items-start justify-between border-b border-slate-100 pb-5">
+      <Card className="p-6 sm:p-8 border-white/10 bg-[#12151E]">
+        <div className="flex items-start justify-between border-b border-white/10 pb-5">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-serif font-bold text-slate-900">{event.title}</h1>
-              <Badge variant={event.status} dot={true}>
+              <h1 className="text-2xl font-sans font-bold text-white">{event.title}</h1>
+              <Badge variant={event.status} theme="dark" dot={true}>
                 {event.status}
               </Badge>
             </div>
-            <p className="text-xs text-slate-500">{event.venue || 'Venue TBD'}</p>
+            <p className="text-xs text-slate-400">{event.venue || 'Venue TBD'}</p>
           </div>
 
           <Button
@@ -299,14 +299,14 @@ export default function EventDetailManage() {
               onChange={(e) => setEditTitle(e.target.value)}
             />
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-1">
+              <label className="block font-mono text-[11px] font-semibold uppercase text-slate-300 mb-1.5">
                 Description
               </label>
               <textarea
                 rows={3}
                 value={editDesc}
                 onChange={(e) => setEditDesc(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs focus:outline-none focus:border-brand-purple"
+                className="w-full bg-[#090A0E] border border-white/15 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#FF4D2D]"
               />
             </div>
             <Input
@@ -327,20 +327,20 @@ export default function EventDetailManage() {
         ) : (
           <div className="pt-6 grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs">
             <div>
-              <span className="font-bold text-slate-400 uppercase tracking-wider block">Date & Time</span>
-              <p className="mt-1 font-semibold text-slate-800">
+              <span className="font-mono text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Date & Time</span>
+              <p className="mt-1 font-mono font-semibold text-white">
                 {formatEventDate(event.startsAt)}
               </p>
             </div>
             <div>
-              <span className="font-bold text-slate-400 uppercase tracking-wider block">End Date</span>
-              <p className="mt-1 font-semibold text-slate-800">
+              <span className="font-mono text-[10px] font-bold text-slate-400 uppercase tracking-wider block">End Date</span>
+              <p className="mt-1 font-mono font-semibold text-white">
                 {formatEventDate(event.endsAt)}
               </p>
             </div>
             <div>
-              <span className="font-bold text-slate-400 uppercase tracking-wider block">Total Tiers</span>
-              <p className="mt-1 font-semibold text-slate-800">{ticketTypes.length} configured</p>
+              <span className="font-mono text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Tiers</span>
+              <p className="mt-1 font-mono font-semibold text-white">{ticketTypes.length} configured</p>
             </div>
           </div>
         )}
@@ -350,8 +350,8 @@ export default function EventDetailManage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-serif font-bold text-slate-900">Ticket Tiers & Inventory</h2>
-            <p className="text-xs text-slate-500">
+            <h2 className="text-xl font-sans font-bold text-white">Ticket Tiers & Inventory</h2>
+            <p className="text-xs text-slate-400">
               Configure seat categories, prices in INR, and live capacity allocations.
             </p>
           </div>
@@ -360,17 +360,17 @@ export default function EventDetailManage() {
             variant="primary"
             size="sm"
             onClick={() => setTierModalOpen(true)}
-            className="rounded-xl text-xs gap-1 shadow-sm"
+            className="rounded-xl text-xs gap-1"
           >
             <Plus className="w-4 h-4" /> Add Ticket Tier
           </Button>
         </div>
 
         {ticketTypes.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-slate-200 p-6 space-y-3">
-            <Ticket className="w-8 h-8 text-slate-300 mx-auto" />
-            <h4 className="text-sm font-bold text-slate-800">No ticket tiers yet</h4>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+          <div className="text-center py-12 bg-[#12151E] rounded-2xl border border-dashed border-white/10 p-6 space-y-3">
+            <Ticket className="w-8 h-8 text-slate-500 mx-auto" />
+            <h4 className="text-sm font-bold text-white">No ticket tiers yet</h4>
+            <p className="text-xs text-slate-400 max-w-sm mx-auto">
               Create at least one ticket tier (e.g. Early Bird, VIP, General Admission) before publishing.
             </p>
             <Button variant="primary" size="sm" onClick={() => setTierModalOpen(true)}>
@@ -378,11 +378,11 @@ export default function EventDetailManage() {
             </Button>
           </div>
         ) : (
-          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-soft overflow-hidden">
+          <div className="bg-[#12151E] rounded-2xl border border-white/10 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider">
+                  <tr className="border-b border-white/10 bg-[#090A0E] text-slate-400 font-mono text-[10px] font-semibold uppercase tracking-wider">
                     <th className="py-3.5 px-6">Tier Name</th>
                     <th className="py-3.5 px-4">Price</th>
                     <th className="py-3.5 px-4">Total Cap</th>
@@ -393,31 +393,31 @@ export default function EventDetailManage() {
                     <th className="py-3.5 px-6 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-white/5">
                   {ticketTypes.map((tier) => {
                     const available = tier.availableCapacity !== undefined
                       ? tier.availableCapacity
                       : Math.max(0, tier.totalCapacity - ((tier.reservedCount || 0) + (tier.soldCount || 0)));
 
                     return (
-                      <tr key={tier._id} className="hover:bg-slate-50/60 transition-colors">
+                      <tr key={tier._id} className="hover:bg-white/[0.03] transition-colors">
                         <td className="py-4 px-6">
-                          <p className="font-bold text-slate-900">{tier.name}</p>
+                          <p className="font-bold text-white">{tier.name}</p>
                           <p className="text-[11px] text-slate-400">{tier.description || 'General Admission'}</p>
                         </td>
-                        <td className="py-4 px-4 font-bold text-slate-900">
+                        <td className="py-4 px-4 font-mono font-bold text-white">
                           {formatPaiseToINR(tier.price)}
                         </td>
-                        <td className="py-4 px-4 font-semibold text-slate-700">{tier.totalCapacity}</td>
-                        <td className="py-4 px-4 text-amber-600 font-semibold">{tier.reservedCount || 0}</td>
-                        <td className="py-4 px-4 text-emerald-600 font-semibold">{tier.soldCount || 0}</td>
-                        <td className="py-4 px-4 font-bold text-slate-900">
-                          <span className={`px-2 py-0.5 rounded-full ${available <= 0 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                        <td className="py-4 px-4 font-mono font-semibold text-slate-300">{tier.totalCapacity}</td>
+                        <td className="py-4 px-4 font-mono text-amber-300 font-semibold">{tier.reservedCount || 0}</td>
+                        <td className="py-4 px-4 font-mono text-[#10B981] font-semibold">{tier.soldCount || 0}</td>
+                        <td className="py-4 px-4 font-mono font-bold text-white">
+                          <span className={`px-2 py-0.5 rounded-md ${available <= 0 ? 'bg-rose-500/20 text-rose-300' : 'bg-[#10B981]/20 text-[#34D399]'}`}>
                             {available}
                           </span>
                         </td>
                         <td className="py-4 px-4">
-                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${tier.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                          <span className={`font-mono text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${tier.isActive ? 'bg-[#10B981]/15 text-[#34D399]' : 'bg-white/10 text-slate-400'}`}>
                             {tier.isActive ? 'Active' : 'Inactive'}
                           </span>
                         </td>
@@ -425,13 +425,13 @@ export default function EventDetailManage() {
                           <button
                             type="button"
                             onClick={() => handleToggleTier(tier._id)}
-                            className="p-1.5 text-slate-500 hover:text-brand-purple cursor-pointer"
+                            className="p-1.5 text-slate-400 hover:text-[#FF4D2D] cursor-pointer"
                             title={tier.isActive ? 'Deactivate tier' : 'Activate tier'}
                           >
                             {tier.isActive ? (
-                              <ToggleRight className="w-6 h-6 text-emerald-500" />
+                              <ToggleRight className="w-6 h-6 text-[#10B981]" />
                             ) : (
-                              <ToggleLeft className="w-6 h-6 text-slate-400" />
+                              <ToggleLeft className="w-6 h-6 text-slate-500" />
                             )}
                           </button>
                         </td>
@@ -451,10 +451,11 @@ export default function EventDetailManage() {
         onClose={() => setTierModalOpen(false)}
         title="Add Ticket Tier"
         description="Configure tier pricing, capacity, and sales parameters."
+        theme="dark"
       >
         <form onSubmit={handleCreateTier} className="space-y-4">
           {tierError && (
-            <div className="p-3 bg-rose-50 text-rose-700 text-xs rounded-xl border border-rose-200">
+            <div className="p-3 bg-rose-500/15 text-rose-200 text-xs rounded-xl border border-rose-400/30">
               {tierError}
             </div>
           )}
@@ -496,7 +497,7 @@ export default function EventDetailManage() {
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
             <Button variant="outline" size="sm" onClick={() => setTierModalOpen(false)}>
               Cancel
             </Button>

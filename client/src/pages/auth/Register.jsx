@@ -52,23 +52,23 @@ export default function Register() {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            'radial-gradient(circle at 80% 20%, rgba(91, 76, 242, 0.24), transparent 45%), radial-gradient(circle at 20% 80%, rgba(255, 90, 95, 0.12), transparent 45%)'
+            'radial-gradient(ellipse 65% 45% at 50% 0%, rgba(255, 77, 45, 0.14), transparent 65%)'
         }}
       />
 
       <div className="relative z-10 w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <Logo light={true} />
-          <h1 className="text-3xl font-serif font-bold text-white pt-2">
+          <h1 className="font-display uppercase text-3xl sm:text-4xl font-bold text-white pt-2">
             Create Your Account
           </h1>
           <p className="text-sm text-slate-400">
-            Join ReserveX to book live events or start hosting your own.
+            Join ReserveX to book live events or launch your own venue shows.
           </p>
         </div>
 
         {error && (
-          <div className="p-4 bg-rose-500/15 border border-rose-400/30 rounded-2xl text-xs text-rose-200 flex items-start gap-2.5">
+          <div className="p-4 bg-rose-500/15 border border-rose-400/30 rounded-xl text-xs text-rose-200 flex items-start gap-2.5">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
             <span>{error}</span>
           </div>
@@ -76,7 +76,7 @@ export default function Register() {
 
         <form
           onSubmit={handleSubmit}
-          className="bg-[#12172A]/90 backdrop-blur-xl rounded-3xl p-8 border border-white/15 shadow-2xl space-y-5"
+          className="bg-[#101219] rounded-2xl p-8 border border-white/15 shadow-card space-y-5"
         >
           <Input
             label="Full Name"
@@ -122,13 +122,13 @@ export default function Register() {
           />
 
           <div className="text-xs text-slate-300 space-y-1.5 pt-1">
-            <p className="flex items-center gap-2 text-emerald-400">
+            <p className="flex items-center gap-2 text-[#10B981]">
               <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-              <span>Instant digital tickets with signed QR validation</span>
+              <span>Instant digital QR passes in your wallet</span>
             </p>
-            <p className="flex items-center gap-2 text-emerald-400">
+            <p className="flex items-center gap-2 text-[#10B981]">
               <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-              <span>Guaranteed seats with 10-minute atomic holds</span>
+              <span>10-minute checkout seat reservation</span>
             </p>
           </div>
 
@@ -137,7 +137,7 @@ export default function Register() {
             variant="primary"
             size="lg"
             loading={loading}
-            className="w-full rounded-2xl bg-brand-purple hover:bg-indigo-500 shadow-glow py-3.5"
+            className="w-full rounded-xl bg-[#FF4D2D] hover:bg-[#E63E20] shadow-glow py-3.5"
           >
             Create Account <ArrowRight className="w-4 h-4 ml-1" />
           </Button>
@@ -146,7 +146,7 @@ export default function Register() {
             Already have an account?{' '}
             <Link
               to={`/login${redirectUrl !== '/' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
-              className="text-indigo-300 font-bold hover:text-white hover:underline"
+              className="text-[#FF4D2D] font-bold hover:text-white hover:underline"
             >
               Sign In
             </Link>

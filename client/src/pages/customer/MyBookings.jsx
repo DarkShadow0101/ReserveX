@@ -41,22 +41,16 @@ export default function MyBookings() {
     <div className="pt-28 pb-24 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-6">
         <div>
-          <div className="flex items-center gap-2.5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-coral">
-              Order History
-            </span>
-            <span className="w-6 h-[1px] bg-brand-coral/60" />
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-white mt-1">
+          <h1 className="font-display uppercase text-3xl sm:text-4xl font-bold text-white">
             My Bookings
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Review past reservations, complete pending payments, or view your digital passes.
+            Review reservations, complete pending checkouts, or view your passes.
           </p>
         </div>
 
         <Link to="/my-tickets">
-          <Button variant="primary" size="sm" className="bg-brand-purple hover:bg-indigo-500 shadow-glow">
+          <Button variant="primary" size="sm" className="bg-[#FF4D2D] hover:bg-[#E63E20]">
             View My Tickets
           </Button>
         </Link>
@@ -65,16 +59,16 @@ export default function MyBookings() {
       {loading || authLoading ? (
         <LoadingSpinner theme="dark" text="Loading your bookings..." />
       ) : !isAuthenticated ? (
-        <div className="text-center py-20 bg-[#12172A]/85 rounded-3xl border border-white/10 p-8 space-y-4">
-          <div className="w-16 h-16 rounded-full bg-indigo-500/15 border border-indigo-400/30 text-indigo-300 flex items-center justify-center mx-auto">
+        <div className="text-center py-20 bg-[#101219] rounded-2xl border border-white/10 p-8 space-y-4">
+          <div className="w-16 h-16 rounded-full bg-[#FF4D2D]/15 border border-[#FF4D2D]/30 text-[#FF4D2D] flex items-center justify-center mx-auto">
             <Calendar className="w-8 h-8" />
           </div>
-          <h3 className="text-xl font-serif font-bold text-white">Sign in to view your bookings</h3>
+          <h3 className="text-xl font-sans font-bold text-white">Sign in to view your bookings</h3>
           <p className="text-sm text-slate-400 max-w-md mx-auto">
-            Access your active holds, payment statuses, and confirmed reservations.
+            Access active reservations, payment statuses, and confirmed passes.
           </p>
           <Link to="/login?redirect=/my-bookings" className="inline-block pt-2">
-            <Button variant="primary" size="md" className="bg-brand-purple hover:bg-indigo-500">
+            <Button variant="primary" size="md" className="bg-[#FF4D2D] hover:bg-[#E63E20]">
               Sign In
             </Button>
           </Link>
@@ -84,11 +78,11 @@ export default function MyBookings() {
           {bookings.map((booking) => (
             <div
               key={booking._id}
-              className="bg-[#12172A]/90 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:border-indigo-400/35 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
+              className="bg-[#101219] rounded-2xl p-6 border border-white/10 hover:border-[#FF4D2D]/45 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
             >
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="font-mono text-sm font-bold text-indigo-300">
+                  <span className="font-mono text-sm font-bold text-[#FF4D2D]">
                     {booking.bookingReference}
                   </span>
                   <Badge variant={booking.status} theme="dark" dot={true}>
@@ -96,12 +90,12 @@ export default function MyBookings() {
                   </Badge>
                 </div>
 
-                <h3 className="text-xl font-serif font-bold text-white">
+                <h3 className="text-xl font-sans font-bold text-white">
                   {booking.event?.title || 'Event Booking'}
                 </h3>
 
                 <p className="text-xs text-slate-400 flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-indigo-300" />
+                  <Calendar className="w-3.5 h-3.5 text-[#FF4D2D]" />
                   {formatEventDate(booking.event?.startsAt)}
                 </p>
 
@@ -109,7 +103,7 @@ export default function MyBookings() {
                   {booking.items?.map((item, idx) => (
                     <span
                       key={idx}
-                      className="px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/10"
+                      className="font-mono px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/10"
                     >
                       {item.name} × {item.quantity}
                     </span>
@@ -119,17 +113,17 @@ export default function MyBookings() {
 
               <div className="flex items-center justify-between md:flex-col md:items-end gap-3 pt-4 md:pt-0 border-t md:border-t-0 border-white/10">
                 <div className="md:text-right">
-                  <span className="text-[11px] uppercase tracking-wider text-slate-400 block">
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-slate-400 block">
                     Total Amount
                   </span>
-                  <span className="text-xl font-black text-white">
+                  <span className="font-mono text-xl font-bold text-white">
                     {formatPaiseToINR(booking.totalAmount)}
                   </span>
                 </div>
 
                 {booking.status === 'PENDING_PAYMENT' && (
                   <Link to={`/checkout/${booking._id}`}>
-                    <Button variant="primary" size="sm" className="bg-brand-purple hover:bg-indigo-500 shadow-sm">
+                    <Button variant="primary" size="sm" className="bg-[#FF4D2D] hover:bg-[#E63E20] shadow-sm">
                       Complete Payment <ArrowRight className="w-3.5 h-3.5 ml-1" />
                     </Button>
                   </Link>
@@ -140,9 +134,9 @@ export default function MyBookings() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="bg-white/[0.05] border-white/20 text-white hover:bg-white/10"
+                      className="bg-white/[0.05] border-white/15 text-white hover:bg-white/10"
                     >
-                      View Tickets <Ticket className="w-3.5 h-3.5 ml-1 text-indigo-300" />
+                      View Tickets <Ticket className="w-3.5 h-3.5 ml-1 text-[#10B981]" />
                     </Button>
                   </Link>
                 )}
@@ -151,16 +145,16 @@ export default function MyBookings() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-20 bg-[#12172A]/85 rounded-3xl border border-white/10 p-8 space-y-4">
-          <div className="w-16 h-16 rounded-full bg-indigo-500/15 border border-indigo-400/30 text-indigo-300 flex items-center justify-center mx-auto">
+        <div className="text-center py-20 bg-[#101219] rounded-2xl border border-white/10 p-8 space-y-4">
+          <div className="w-16 h-16 rounded-full bg-[#FF4D2D]/15 border border-[#FF4D2D]/30 text-[#FF4D2D] flex items-center justify-center mx-auto">
             <Calendar className="w-8 h-8" />
           </div>
-          <h3 className="text-xl font-serif font-bold text-white">No bookings found</h3>
+          <h3 className="text-xl font-sans font-bold text-white">No bookings found</h3>
           <p className="text-sm text-slate-400 max-w-md mx-auto">
-            You haven't made any event bookings yet. Explore live experiences to reserve your first pass.
+            You haven't made any event bookings yet. Explore live concerts and festivals to book your first pass.
           </p>
           <Link to="/events" className="inline-block pt-2">
-            <Button variant="primary" size="md" className="bg-brand-purple hover:bg-indigo-500">
+            <Button variant="primary" size="md" className="bg-[#FF4D2D] hover:bg-[#E63E20]">
               Find an Event
             </Button>
           </Link>

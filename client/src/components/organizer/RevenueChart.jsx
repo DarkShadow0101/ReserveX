@@ -21,26 +21,26 @@ export default function RevenueChart({ data = [], isDemo = false }) {
   };
 
   return (
-    <Card className="p-6 border-slate-100 shadow-soft flex flex-col justify-between h-full">
+    <Card className="p-6 border-white/10 bg-[#12151E] flex flex-col justify-between h-full">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-base font-bold text-slate-900">Revenue Overview</h3>
+          <h3 className="text-base font-bold text-white">Ticket Sales & Revenue</h3>
           {isDemo && (
-            <span className="text-[11px] text-brand-purple font-semibold">
-              Demo Preview • Sample trend
+            <span className="font-mono text-[11px] text-amber-300 font-semibold">
+              Sample preview trend
             </span>
           )}
         </div>
 
         {hasData && (
-          <div className="flex items-center gap-4 text-xs font-semibold">
-            <div className="flex items-center gap-1.5 text-slate-800">
-              <span className="w-2.5 h-2.5 rounded-full bg-brand-purple" />
+          <div className="flex items-center gap-4 text-xs font-mono">
+            <div className="flex items-center gap-1.5 text-slate-200">
+              <span className="w-2.5 h-2.5 rounded-sm bg-[#FF4D2D]" />
               <span>This Period</span>
             </div>
             {data.some((d) => d.lastPeriod !== undefined) && (
               <div className="flex items-center gap-1.5 text-slate-400">
-                <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+                <span className="w-2.5 h-2.5 rounded-sm bg-slate-500" />
                 <span>Last Period</span>
               </div>
             )}
@@ -54,20 +54,20 @@ export default function RevenueChart({ data = [], isDemo = false }) {
             <AreaChart data={data} margin={{ top: 10, right: 10, left: -16, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#5B4CF2" stopOpacity={0.28} />
-                  <stop offset="95%" stopColor="#5B4CF2" stopOpacity={0.0} />
+                  <stop offset="5%" stopColor="#FF4D2D" stopOpacity={0.34} />
+                  <stop offset="95%" stopColor="#FF4D2D" stopOpacity={0.0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#242938" />
               <XAxis
                 dataKey="period"
-                stroke="#94a3b8"
+                stroke="#64748B"
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis
-                stroke="#94a3b8"
+                stroke="#64748B"
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
@@ -76,20 +76,19 @@ export default function RevenueChart({ data = [], isDemo = false }) {
               <Tooltip
                 formatter={(value) => [`₹${Number(value).toLocaleString('en-IN')}`, 'Revenue']}
                 contentStyle={{
-                  backgroundColor: '#0F172A',
-                  color: '#fff',
-                  borderRadius: '12px',
-                  border: 'none',
-                  fontSize: '12px',
-                  boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)'
+                  backgroundColor: '#090A0E',
+                  color: '#F4F1EA',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  fontSize: '12px'
                 }}
-                itemStyle={{ color: '#fff' }}
+                itemStyle={{ color: '#F4F1EA' }}
               />
               <Area
                 type="monotone"
                 dataKey="thisPeriod"
-                stroke="#5B4CF2"
-                strokeWidth={3}
+                stroke="#FF4D2D"
+                strokeWidth={2.5}
                 fillOpacity={1}
                 fill="url(#colorRevenue)"
               />
@@ -97,8 +96,8 @@ export default function RevenueChart({ data = [], isDemo = false }) {
                 <Area
                   type="monotone"
                   dataKey="lastPeriod"
-                  stroke="#cbd5e1"
-                  strokeWidth={2}
+                  stroke="#64748B"
+                  strokeWidth={1.75}
                   strokeDasharray="4 4"
                   fillOpacity={0}
                   fill="transparent"
@@ -108,9 +107,9 @@ export default function RevenueChart({ data = [], isDemo = false }) {
           </ResponsiveContainer>
         </div>
       ) : (
-        <div className="h-64 flex flex-col items-center justify-center text-center bg-slate-50/70 rounded-2xl border border-dashed border-slate-200 px-6">
-          <TrendingUp className="w-8 h-8 text-slate-300 mb-2" />
-          <p className="text-sm font-semibold text-slate-700">No confirmed revenue yet</p>
+        <div className="h-64 flex flex-col items-center justify-center text-center bg-[#090A0E] rounded-xl border border-dashed border-white/10 px-6">
+          <TrendingUp className="w-8 h-8 text-slate-600 mb-2" />
+          <p className="text-sm font-semibold text-slate-200">No confirmed revenue yet</p>
           <p className="text-xs text-slate-400 mt-1 max-w-xs">
             Confirmed ticket payments for your published events will plot here automatically.
           </p>

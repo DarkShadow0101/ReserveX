@@ -15,6 +15,7 @@ export default function SelectDropdown({
   menuAlign = 'left'
 }) {
   const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
@@ -31,6 +32,15 @@ export default function SelectDropdown({
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         setOpen(false);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActiveIndex((prev) => (prev + 1) % Math.max(options.length, 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveIndex((prev) => (prev <= 0 ? options.length - 1 : prev - 1));
+      } else if (e.key === 'Enter' && open && activeIndex >= 0 && options[activeIndex]) {
+        e.preventDefault();
+        handleSelect(options[activeIndex].value);
       }
     };
 
@@ -43,30 +53,31 @@ export default function SelectDropdown({
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [open]);
+  }, [open, activeIndex, options]);
 
   const handleSelect = (optValue) => {
     if (onChange) {
       onChange(optValue);
     }
     setOpen(false);
+    setActiveIndex(-1);
   };
 
   const triggerStyles =
     variant === 'inline'
-      ? `w-full flex items-center justify-between gap-2 bg-transparent px-4 py-2.5 lg:py-2 text-sm font-medium cursor-pointer focus:outline-none ${
-          isDark ? 'text-slate-200 hover:text-white' : 'text-slate-800 hover:text-slate-950'
+      ? `w-full flex items-center justify-between gap-2 bg-transparent px-3.5 py-2.5 lg:py-2 text-xs sm:text-sm font-medium cursor-pointer rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D2D] ${
+          isDark ? 'text-slate-200 hover:text-white' : 'text-slate-200 hover:text-white'
         }`
       : isDark
-      ? `w-full flex items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm font-medium cursor-pointer transition-all focus:outline-none ${
+      ? `w-full flex items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm font-medium cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D2D] ${
           open
-            ? 'bg-white/[0.08] border-brand-purple ring-2 ring-brand-purple/25 text-white'
-            : 'bg-white/[0.04] border-white/10 hover:border-white/25 text-slate-200'
+            ? 'bg-white/[0.08] border-[#FF4D2D] ring-2 ring-[#FF4D2D]/20 text-white'
+            : 'bg-[#0B0D12] border-white/10 hover:border-white/25 text-slate-200'
         }`
-      : `w-full flex items-center justify-between gap-2 rounded-2xl border px-3.5 py-2.5 text-xs font-semibold cursor-pointer transition-all shadow-sm focus:outline-none ${
+      : `w-full flex items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm font-medium cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D2D] ${
           open
-            ? 'bg-white border-brand-purple ring-2 ring-brand-purple/20 text-slate-900'
-            : 'bg-white border-slate-200/90 hover:border-slate-300 text-slate-800'
+            ? 'bg-[#12151E] border-[#FF4D2D] ring-2 ring-[#FF4D2D]/20 text-white'
+            : 'bg-[#12151E] border-white/15 hover:border-white/30 text-slate-200'
         }`;
 
   return (
@@ -76,15 +87,22 @@ export default function SelectDropdown({
         aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={open}
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => {
+          setOpen((prev) => {
+            const next = !prev;
+            if (next) {
+              const selIdx = options.findIndex((o) => o.value === value);
+              setActiveIndex(selIdx >= 0 ? selIdx : 0);
+            }
+            return next;
+          });
+        }}
         className={triggerStyles}
       >
-        <span className="flex items-center gap-2.5 min-w-0">
+        <span className="flex items-center gap-2 min-w-0">
           {Icon && (
             <Icon
-              className={`w-4 h-4 shrink-0 ${
-                iconClassName || (isDark ? 'text-slate-300' : 'text-slate-400')
-              }`}
+              className={`w-4 h-4 shrink-0 ${iconClassName || 'text-slate-400'}`}
             />
           )}
           <span className="truncate">{displayLabel}</span>
@@ -93,48 +111,38 @@ export default function SelectDropdown({
         <ChevronDown
           className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${
             open ? 'rotate-180' : ''
-          } ${isDark ? 'text-slate-400' : 'text-slate-400'}`}
+          } text-slate-400`}
         />
       </button>
 
       {open && (
         <div
           role="listbox"
-          className={`absolute z-50 mt-2 min-w-full w-max max-w-xs rounded-2xl border p-1.5 shadow-2xl backdrop-blur-2xl max-h-64 overflow-y-auto ${
+          className={`absolute z-50 mt-2 min-w-full w-max max-w-xs rounded-xl border p-1.5 shadow-2xl max-h-64 overflow-y-auto bg-[#101219] border-white/15 text-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.75)] ${
             menuAlign === 'right' ? 'right-0' : 'left-0'
-          } ${
-            isDark
-              ? 'bg-[#12172A]/95 border-white/15 text-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.65)]'
-              : 'bg-white border-slate-200 text-slate-800 shadow-xl'
           }`}
         >
-          {options.map((opt) => {
+          {options.map((opt, idx) => {
             const isSelected = opt.value === value;
+            const isHighlighted = idx === activeIndex;
             return (
               <button
                 key={String(opt.value)}
                 type="button"
                 role="option"
                 aria-selected={isSelected}
+                onMouseEnter={() => setActiveIndex(idx)}
                 onClick={() => handleSelect(opt.value)}
-                className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
+                className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-left text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
                   isSelected
-                    ? isDark
-                      ? 'bg-brand-purple text-white'
-                      : 'bg-indigo-50 text-brand-purple font-semibold'
-                    : isDark
-                    ? 'text-slate-200 hover:bg-white/[0.08] hover:text-white'
-                    : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-[#D9381E] text-white'
+                    : isHighlighted
+                    ? 'bg-white/[0.1] text-white'
+                    : 'text-slate-200 hover:bg-white/[0.08] hover:text-white'
                 }`}
               >
                 <span className="truncate">{opt.label}</span>
-                {isSelected && (
-                  <Check
-                    className={`w-3.5 h-3.5 shrink-0 ${
-                      isDark ? 'text-white' : 'text-brand-purple'
-                    }`}
-                  />
-                )}
+                {isSelected && <Check className="w-3.5 h-3.5 shrink-0 text-white" />}
               </button>
             );
           })}

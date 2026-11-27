@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 export default function LoadingSpinner({
   text = 'Loading...',
   size = 'md',
-  theme = 'light',
+  theme = 'dark',
   className = ''
 }) {
   const sizeMap = {
@@ -13,15 +13,13 @@ export default function LoadingSpinner({
     lg: 'w-12 h-12'
   };
 
-  const isDark = theme === 'dark';
-
   return (
     <div
       className={`flex flex-col items-center justify-center p-8 gap-3 ${
-        isDark ? 'text-slate-300' : 'text-slate-500'
+        theme === 'light' ? 'text-slate-400' : 'text-slate-300'
       } ${className}`}
     >
-      <Loader2 className={`${sizeMap[size] || sizeMap.md} animate-spin text-brand-purple`} />
+      <Loader2 className={`${sizeMap[size] || sizeMap.md} animate-spin text-[#FF4D2D]`} />
       {text && <p className="text-xs font-medium tracking-wide">{text}</p>}
     </div>
   );

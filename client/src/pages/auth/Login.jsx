@@ -46,23 +46,23 @@ export default function Login() {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            'radial-gradient(circle at 20% 20%, rgba(91, 76, 242, 0.24), transparent 45%), radial-gradient(circle at 80% 80%, rgba(255, 90, 95, 0.12), transparent 45%)'
+            'radial-gradient(ellipse 65% 45% at 50% 0%, rgba(255, 77, 45, 0.14), transparent 65%)'
         }}
       />
 
       <div className="relative z-10 w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <Logo light={true} />
-          <h1 className="text-3xl font-serif font-bold text-white pt-2">
+          <h1 className="font-display uppercase text-3xl sm:text-4xl font-bold text-white pt-2">
             Welcome Back
           </h1>
           <p className="text-sm text-slate-400">
-            Sign in to manage your tickets, bookings, and organizer events.
+            Sign in to view your passes, bookings, or Organizer Studio.
           </p>
         </div>
 
         {error && (
-          <div className="p-4 bg-rose-500/15 border border-rose-400/30 rounded-2xl text-xs text-rose-200 flex items-start gap-2.5">
+          <div className="p-4 bg-rose-500/15 border border-rose-400/30 rounded-xl text-xs text-rose-200 flex items-start gap-2.5">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
             <span>{error}</span>
           </div>
@@ -70,7 +70,7 @@ export default function Login() {
 
         <form
           onSubmit={handleSubmit}
-          className="bg-[#12172A]/90 backdrop-blur-xl rounded-3xl p-8 border border-white/15 shadow-2xl space-y-5"
+          className="bg-[#101219] rounded-2xl p-8 border border-white/15 shadow-card space-y-5"
         >
           <Input
             label="Email Address"
@@ -108,7 +108,7 @@ export default function Login() {
             <label className="flex items-center gap-2 cursor-pointer text-slate-300">
               <input
                 type="checkbox"
-                className="rounded border-white/20 bg-brand-navy text-brand-purple focus:ring-brand-purple"
+                className="rounded border-white/20 bg-[#090A0E] text-[#FF4D2D] focus:ring-[#FF4D2D]"
               />
               <span>Remember me</span>
             </label>
@@ -122,7 +122,7 @@ export default function Login() {
             variant="primary"
             size="lg"
             loading={loading}
-            className="w-full rounded-2xl bg-brand-purple hover:bg-indigo-500 shadow-glow py-3.5"
+            className="w-full rounded-xl bg-[#FF4D2D] hover:bg-[#E63E20] shadow-glow py-3.5"
           >
             Sign In <ArrowRight className="w-4 h-4 ml-1" />
           </Button>
@@ -131,7 +131,7 @@ export default function Login() {
             Don't have an account?{' '}
             <Link
               to={`/register${redirectUrl !== '/' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
-              className="text-indigo-300 font-bold hover:text-white hover:underline"
+              className="text-[#FF4D2D] font-bold hover:text-white hover:underline"
             >
               Create an account
             </Link>

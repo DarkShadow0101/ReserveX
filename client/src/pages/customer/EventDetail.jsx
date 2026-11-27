@@ -145,10 +145,10 @@ export default function EventDetail() {
         <div className="w-16 h-16 rounded-full bg-rose-500/15 border border-rose-400/30 text-rose-400 flex items-center justify-center mx-auto">
           <AlertCircle className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-serif font-bold text-white">Event Not Found</h2>
+        <h2 className="text-2xl font-sans font-bold text-white">Event Not Found</h2>
         <p className="text-sm text-slate-400">{error}</p>
         <Link to="/events" className="inline-block pt-2">
-          <Button variant="primary" size="md" className="bg-brand-purple hover:bg-indigo-500">
+          <Button variant="primary" size="md" className="bg-[#FF4D2D] hover:bg-[#E63E20]">
             Back to All Events
           </Button>
         </Link>
@@ -167,8 +167,8 @@ export default function EventDetail() {
         </Link>
       </div>
 
-      {/* 1. Cinematic Hero Cover Banner */}
-      <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/10 aspect-[21/9] min-h-[340px] max-h-[480px] bg-[#10162B]">
+      {/* 1. Stage Cover Banner */}
+      <div className="relative rounded-2xl overflow-hidden shadow-card border border-white/10 aspect-[21/9] min-h-[340px] max-h-[480px] bg-[#0B0D12]">
         <img
           src={imgSrc}
           alt={event.title}
@@ -179,7 +179,7 @@ export default function EventDetail() {
           }}
           className="w-full h-full object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/45 to-black/25" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#060709] via-[#060709]/45 to-black/25" />
 
         <div className="absolute top-6 left-6 flex items-center gap-3">
           <Badge variant={event.status || 'published'} theme="dark" dot={true} className="backdrop-blur-md">
@@ -189,16 +189,16 @@ export default function EventDetail() {
 
         <div className="absolute bottom-6 left-6 right-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-2.5 max-w-3xl">
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold text-white tracking-tight drop-shadow-md">
+            <h1 className="font-display uppercase text-3xl sm:text-5xl font-bold text-white tracking-tight">
               {event.title}
             </h1>
             <div className="flex flex-wrap items-center gap-5 text-xs sm:text-sm text-slate-200">
               <span className="flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-indigo-300" />
+                <Calendar className="w-4 h-4 text-[#FF4D2D]" />
                 {formatEventDate(event.startsAt)}
               </span>
               <span className="flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-brand-coral" />
+                <MapPin className="w-4 h-4 text-slate-400" />
                 {event.venue || 'Venue TBD'}
               </span>
             </div>
@@ -210,24 +210,24 @@ export default function EventDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         {/* Left Column: Event Description, Schedule, Organizer */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="bg-[#12172A]/85 backdrop-blur-xl rounded-3xl p-7 sm:p-8 border border-white/10 space-y-4">
-            <h2 className="text-2xl font-serif font-bold text-white">About this Experience</h2>
+          <div className="bg-[#101219] rounded-2xl p-7 sm:p-8 border border-white/10 space-y-4">
+            <h2 className="text-xl font-sans font-bold text-white">About this Event</h2>
             <div className="text-slate-300 text-sm sm:text-base leading-relaxed whitespace-pre-line">
               {event.description ||
-                'Join us for an unforgettable live experience packed with world-class performances, electric atmosphere, and curated stage production. Reserve your tickets early to secure your preferred tier.'}
+                'Join us for an unforgettable live show featuring live performances and stage production. Reserve your tickets early to lock in your tier.'}
             </div>
           </div>
 
-          <div className="bg-[#12172A]/85 backdrop-blur-xl rounded-3xl p-7 sm:p-8 border border-white/10 space-y-6">
-            <h2 className="text-xl font-serif font-bold text-white">Schedule & Location</h2>
+          <div className="bg-[#101219] rounded-2xl p-7 sm:p-8 border border-white/10 space-y-6">
+            <h2 className="text-xl font-sans font-bold text-white">Schedule & Venue</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="flex items-start gap-3.5">
-                <div className="p-2.5 rounded-2xl bg-indigo-500/15 border border-indigo-400/25 text-indigo-300 shrink-0">
+                <div className="p-2.5 rounded-xl bg-white/[0.06] border border-white/10 text-[#FF4D2D] shrink-0">
                   <Calendar className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  <h4 className="font-mono text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                     Date & Time
                   </h4>
                   <p className="text-sm font-semibold text-white mt-0.5">
@@ -240,11 +240,11 @@ export default function EventDetail() {
               </div>
 
               <div className="flex items-start gap-3.5">
-                <div className="p-2.5 rounded-2xl bg-rose-500/15 border border-rose-400/25 text-brand-coral shrink-0">
+                <div className="p-2.5 rounded-xl bg-white/[0.06] border border-white/10 text-[#FF4D2D] shrink-0">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  <h4 className="font-mono text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                     Location
                   </h4>
                   <p className="text-sm font-semibold text-white mt-0.5">
@@ -257,13 +257,13 @@ export default function EventDetail() {
           </div>
 
           {/* Organizer Trust Card */}
-          <div className="bg-gradient-to-r from-[#141A31] to-[#19203B] rounded-3xl p-6 border border-indigo-400/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="bg-[#101219] rounded-2xl p-6 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center text-indigo-300 shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center text-[#F4F1EA] shrink-0">
                 <Building className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+                <p className="font-mono text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
                   Organized by
                 </p>
                 <h4 className="text-base font-bold text-white">
@@ -271,7 +271,7 @@ export default function EventDetail() {
                 </h4>
               </div>
             </div>
-            <div className="inline-flex items-center gap-1.5 text-xs text-emerald-300 font-semibold bg-emerald-500/15 border border-emerald-400/30 px-3.5 py-1.5 rounded-full self-start sm:self-auto">
+            <div className="inline-flex items-center gap-1.5 font-mono text-xs text-[#34D399] font-semibold bg-[#10B981]/15 border border-[#10B981]/30 px-3.5 py-1.5 rounded-full self-start sm:self-auto">
               <ShieldCheck className="w-4 h-4" /> Verified Organizer
             </div>
           </div>
@@ -279,19 +279,16 @@ export default function EventDetail() {
 
         {/* Right Column: Sticky Ticket Tier Selection Panel */}
         <div className="lg:col-span-5">
-          <div className="sticky top-28 bg-[#12172A]/95 backdrop-blur-xl rounded-3xl border border-indigo-400/25 shadow-2xl p-6 sm:p-8 space-y-6">
+          <div className="sticky top-28 bg-[#101219] rounded-2xl border border-white/15 shadow-card p-6 sm:p-8 space-y-6">
             <div className="border-b border-white/10 pb-4">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-brand-coral">
-                Instant Reservation
-              </span>
-              <h3 className="text-2xl font-serif font-bold text-white mt-1">Select Tickets</h3>
+              <h3 className="text-2xl font-sans font-bold text-white">Select Tickets</h3>
               <p className="text-xs text-slate-400 mt-1">
-                10-minute atomic inventory hold guaranteed upon checkout.
+                Your seats are held for 10 minutes while you complete payment.
               </p>
             </div>
 
             {error && (
-              <div className="p-3.5 bg-rose-500/15 border border-rose-400/30 rounded-2xl text-xs text-rose-200 flex items-start gap-2">
+              <div className="p-3.5 bg-rose-500/15 border border-rose-400/30 rounded-xl text-xs text-rose-200 flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
                 <span>{error}</span>
               </div>
@@ -299,7 +296,7 @@ export default function EventDetail() {
 
             <div className="space-y-3.5">
               {ticketTypes.length === 0 ? (
-                <div className="text-center py-8 text-slate-400 text-sm border border-dashed border-white/10 rounded-2xl">
+                <div className="text-center py-8 text-slate-400 text-sm border border-dashed border-white/10 rounded-xl">
                   No ticket tiers currently active for this event.
                 </div>
               ) : (
@@ -314,10 +311,10 @@ export default function EventDetail() {
                   return (
                     <div
                       key={tier._id}
-                      className={`p-4 rounded-2xl border transition-all ${
+                      className={`p-4 rounded-xl border transition-all ${
                         qty > 0
-                          ? 'border-brand-purple bg-brand-purple/15 ring-1 ring-brand-purple/30'
-                          : 'border-white/10 bg-white/[0.03] hover:border-white/20'
+                          ? 'border-[#FF4D2D] bg-[#FF4D2D]/10'
+                          : 'border-white/10 bg-[#090A0E] hover:border-white/25'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -327,16 +324,16 @@ export default function EventDetail() {
                             {tier.description || 'General Admission'}
                           </p>
                           <div className="pt-1.5 flex items-center gap-2.5">
-                            <span className="text-base font-extrabold text-white">
+                            <span className="font-mono text-base font-bold text-white">
                               {formatPaiseToINR(tier.price)}
                             </span>
                             <span
-                              className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${
+                              className={`font-mono text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${
                                 isSoldOut
                                   ? 'bg-rose-500/15 text-rose-300 border-rose-400/30'
                                   : available < 10
                                   ? 'bg-amber-500/15 text-amber-300 border-amber-400/30'
-                                  : 'bg-emerald-500/15 text-emerald-300 border-emerald-400/30'
+                                  : 'bg-[#10B981]/15 text-[#34D399] border-[#10B981]/30'
                               }`}
                             >
                               {isSoldOut ? 'Sold Out' : `${available} left`}
@@ -344,17 +341,17 @@ export default function EventDetail() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 bg-brand-navy rounded-xl border border-white/15 p-1">
+                        <div className="flex items-center gap-2 bg-[#12151E] rounded-lg border border-white/15 p-1">
                           <button
                             type="button"
                             disabled={qty === 0}
                             onClick={() => handleQuantityChange(tier._id, -1, available)}
                             aria-label={`Decrease quantity for ${tier.name}`}
-                            className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                            className="w-7 h-7 rounded-md flex items-center justify-center text-slate-300 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                           >
                             <Minus className="w-3.5 h-3.5" />
                           </button>
-                          <span className="w-6 text-center text-sm font-bold text-white">
+                          <span className="font-mono w-6 text-center text-sm font-bold text-white">
                             {qty}
                           </span>
                           <button
@@ -362,7 +359,7 @@ export default function EventDetail() {
                             disabled={isSoldOut || qty >= available || qty >= 10}
                             onClick={() => handleQuantityChange(tier._id, 1, available)}
                             aria-label={`Increase quantity for ${tier.name}`}
-                            className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                            className="w-7 h-7 rounded-md flex items-center justify-center text-slate-300 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                           >
                             <Plus className="w-3.5 h-3.5" />
                           </button>
@@ -377,11 +374,11 @@ export default function EventDetail() {
             <div className="border-t border-white/10 pt-5 space-y-4">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-400 font-medium">Selected Tickets</span>
-                <span className="font-bold text-white">{totalSelectedTickets}</span>
+                <span className="font-mono font-bold text-white">{totalSelectedTickets}</span>
               </div>
               <div className="flex items-center justify-between text-base">
                 <span className="font-bold text-white">Total Amount</span>
-                <span className="text-2xl font-black text-indigo-300">
+                <span className="font-mono text-2xl font-bold text-white">
                   {formatPaiseToINR(totalAmountPaise)}
                 </span>
               </div>
@@ -392,14 +389,14 @@ export default function EventDetail() {
                 loading={submitting}
                 disabled={totalSelectedTickets === 0 || submitting}
                 onClick={handleBookingHold}
-                className="w-full rounded-2xl bg-brand-purple hover:bg-indigo-500 shadow-glow py-3.5 text-base"
+                className="w-full rounded-xl bg-[#FF4D2D] hover:bg-[#E63E20] shadow-glow py-3.5 text-base"
               >
-                {isAuthenticated ? 'Reserve Tickets' : 'Sign In to Reserve'}
+                {isAuthenticated ? 'Continue to Checkout' : 'Sign In to Reserve'}
               </Button>
 
               <div className="flex items-center justify-center gap-2 text-[11px] text-slate-400">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Atomic hold prevents overselling during checkout</span>
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
+                <span>Instant digital QR passes issued upon confirmation</span>
               </div>
             </div>
           </div>

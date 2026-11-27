@@ -65,31 +65,31 @@ export default function CreateEvent() {
     <div className="max-w-3xl mx-auto space-y-6">
       <Link
         to="/organizer/events"
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
       >
         <ArrowLeft className="w-4 h-4" /> Back to Events
       </Link>
 
       <div>
-        <span className="text-xs font-bold uppercase tracking-widest text-brand-purple">
+        <span className="font-mono text-xs font-bold uppercase tracking-widest text-[#FF4D2D]">
           Step 1 of 2
         </span>
-        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-slate-900 mt-1">
+        <h1 className="text-2xl sm:text-3xl font-sans font-bold text-white mt-1">
           Create New Event
         </h1>
-        <p className="text-xs text-slate-500 mt-1">
-          Set up basic event details. You can configure ticket tiers and publish it on the next step.
+        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          Set up basic event details, then configure ticket tiers and publish.
         </p>
       </div>
 
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-700 flex items-start gap-2.5">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+        <div className="p-4 bg-rose-500/15 border border-rose-400/30 rounded-xl text-xs text-rose-200 flex items-start gap-2.5">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
           <span>{error}</span>
         </div>
       )}
 
-      <Card className="p-6 sm:p-8 border-slate-100 shadow-soft">
+      <Card className="p-6 sm:p-8 border-white/10 bg-[#12151E]">
         <form onSubmit={handleSubmit} className="space-y-6">
           <Input
             label="Event Title"
@@ -100,15 +100,15 @@ export default function CreateEvent() {
           />
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block font-mono text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
               Description
             </label>
             <textarea
               rows={4}
-              placeholder="Describe the experience, lineup, schedule, and gate entry guidelines..."
+              placeholder="Describe the lineup, schedule, and gate entry guidelines..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-2xl p-3.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple"
+              className="w-full bg-[#090A0E] border border-white/15 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#FF4D2D] focus:ring-1 focus:ring-[#FF4D2D]"
             />
           </div>
 
@@ -140,7 +140,7 @@ export default function CreateEvent() {
             />
           </div>
 
-          <div className="border-t border-slate-100 pt-5 flex items-center justify-end gap-3">
+          <div className="border-t border-white/10 pt-5 flex items-center justify-end gap-3">
             <Link to="/organizer/events">
               <Button variant="outline" size="md">
                 Cancel
@@ -151,7 +151,7 @@ export default function CreateEvent() {
               variant="primary"
               size="md"
               loading={submitting}
-              className="rounded-2xl shadow-glow px-6"
+              className="rounded-xl px-6"
             >
               Continue to Ticket Tiers →
             </Button>
