@@ -9,6 +9,15 @@ export const HERO_IMAGE =
 export const PROMO_BANNER_IMAGE =
   "https://images.unsplash.com/photo-1550184783-eb56e9a114f1?auto=format&fit=crop&w=1600&q=80";
 
+export const STAGE_HORIZON_IMAGE =
+  "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?auto=format&fit=crop&w=1600&q=80";
+
+export const CATEGORY_HORIZON_IMAGE =
+  "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=1600&q=80";
+
+export const SHOWCASE_CROWD_IMAGE =
+  "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=1200&q=85";
+
 export const FALLBACK_EVENT_IMAGE =
   "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1200&q=80";
 

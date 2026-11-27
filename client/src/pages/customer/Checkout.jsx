@@ -18,6 +18,13 @@ import { formatEventDate } from '../../utils/date';
 import { extractErrorMessage } from '../../utils/errors';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Button from '../../components/ui/Button';
+import { getEventImage, FALLBACK_EVENT_IMAGE } from '../../mocks/eventImages';
+
+const RESERVEX_RZP_LOGO =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect width="128" height="128" rx="28" fill="#D9381E"/><path d="M38 38L90 90M90 38L38 90" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round"/></svg>'
+  );
 
 export default function Checkout() {
   const { bookingId } = useParams();
@@ -92,6 +99,7 @@ export default function Checkout() {
           currency: orderData.currency || 'INR',
           name: 'ReserveX Events',
           description: `Booking ${booking.bookingReference}`,
+          image: RESERVEX_RZP_LOGO,
           order_id: orderData.orderId,
           handler: async function (response) {
             try {
@@ -130,6 +138,10 @@ export default function Checkout() {
             }
           },
           modal: {
+            backdropclose: false,
+            escape: true,
+            confirm_close: true,
+            animation: true,
             ondismiss: function () {
               setProcessingPayment(false);
             }
@@ -139,7 +151,8 @@ export default function Checkout() {
             email: booking.user?.email
           },
           theme: {
-            color: '#FF4D2D'
+            color: '#D9381E',
+            backdrop_color: '#07090D'
           }
         };
 
@@ -244,31 +257,63 @@ export default function Checkout() {
     );
   }
 
+  const checkoutBackdropImg = booking?.event ? getEventImage(booking.event) : FALLBACK_EVENT_IMAGE;
+
   return (
-    <div className="pt-28 pb-24 max-w-4xl mx-auto px-4 sm:px-6 space-y-8">
-      {/* Booking Progress Steps */}
-      <div className="flex items-center justify-between text-xs font-semibold border-b border-white/10 pb-5">
-        <div className="flex items-center gap-2 text-[#10B981]">
-          <span className="font-mono w-6 h-6 rounded-full bg-[#10B981]/20 border border-[#10B981]/40 flex items-center justify-center text-[11px]">
-            1
-          </span>
-          <span>Tickets Selected</span>
-        </div>
-        <div className="flex-1 h-[1px] bg-white/15 mx-3" />
-        <div className="flex items-center gap-2 text-white">
-          <span className="font-mono w-6 h-6 rounded-full bg-[#FF4D2D] text-white flex items-center justify-center text-[11px] shadow-glow">
-            2
-          </span>
-          <span>Payment</span>
-        </div>
-        <div className="flex-1 h-[1px] bg-white/15 mx-3" />
-        <div className="flex items-center gap-2 text-slate-500">
-          <span className="font-mono w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[11px]">
-            3
-          </span>
-          <span>QR Tickets</span>
-        </div>
+    <div className="relative">
+      {/* Event stage atmosphere backdrop behind Checkout */}
+      <div
+        className="pointer-events-none fixed inset-x-0 top-0 h-[440px] z-0 overflow-hidden"
+        style={{
+          WebkitMaskImage: 'linear-gradient(to bottom, black 25%, transparent 100%)',
+          maskImage: 'linear-gradient(to bottom, black 25%, transparent 100%)'
+        }}
+      >
+        <img
+          src={checkoutBackdropImg}
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-cover object-center opacity-[0.22] blur-[3px]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#07090D]/55 via-[#07090D]/75 to-[#07090D]" />
       </div>
+
+      {/* Obsidian transition shield while Razorpay opens / verifies */}
+      {processingPayment && (
+        <div className="fixed inset-0 z-40 bg-[#07090D]/88 backdrop-blur-md flex items-center justify-center px-4">
+          <div className="bg-[#10131C] border border-white/15 rounded-2xl p-6 max-w-sm w-full text-center space-y-3 shadow-2xl">
+            <LoadingSpinner theme="dark" size="md" text="Securing Razorpay session..." />
+            <p className="text-xs text-slate-400">
+              Complete payment inside the Razorpay window. Do not close or refresh this tab.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="relative z-10 pt-28 pb-24 max-w-4xl mx-auto px-4 sm:px-6 space-y-8">
+        {/* Booking Progress Steps */}
+        <div className="flex items-center justify-between text-xs font-semibold border-b border-white/10 pb-5">
+          <div className="flex items-center gap-2 text-[#10B981]">
+            <span className="font-mono w-6 h-6 rounded-full bg-[#10B981]/20 border border-[#10B981]/40 flex items-center justify-center text-[11px]">
+              1
+            </span>
+            <span>Tickets Selected</span>
+          </div>
+          <div className="flex-1 h-[1px] bg-white/15 mx-3" />
+          <div className="flex items-center gap-2 text-white">
+            <span className="font-mono w-6 h-6 rounded-full bg-[#D9381E] text-white flex items-center justify-center text-[11px]">
+              2
+            </span>
+            <span>Payment</span>
+          </div>
+          <div className="flex-1 h-[1px] bg-white/15 mx-3" />
+          <div className="flex items-center gap-2 text-slate-400">
+            <span className="font-mono w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[11px]">
+              3
+            </span>
+            <span>QR Tickets</span>
+          </div>
+        </div>
 
       {/* Hold Expiry Countdown Banner */}
       <div className="bg-[#101219] border border-amber-400/35 rounded-2xl p-5 flex items-center justify-between gap-4">
@@ -382,7 +427,7 @@ export default function Checkout() {
                 loading={processingPayment}
                 disabled={processingPayment || isExpired}
                 onClick={handlePayNow}
-                className="w-full rounded-xl bg-[#FF4D2D] hover:bg-[#E63E20] shadow-glow py-3.5 text-base gap-2"
+                className="w-full rounded-xl bg-[#D9381E] hover:bg-[#C92C12] py-3.5 text-base gap-2"
               >
                 <CreditCard className="w-5 h-5" />
                 Pay with Razorpay
@@ -404,6 +449,7 @@ export default function Checkout() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

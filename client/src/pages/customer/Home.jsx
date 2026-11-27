@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, QrCode, ShieldCheck } from 'lucide-react';
 import { eventsApi } from '../../api/events.api';
 import {
   HERO_IMAGE,
+  CATEGORY_HORIZON_IMAGE,
+  SHOWCASE_CROWD_IMAGE,
   FALLBACK_EVENT_IMAGE,
   CATEGORIES
 } from '../../mocks/eventImages';
@@ -95,15 +97,15 @@ export default function Home() {
   const featuredCards = events.length >= 3 ? events.slice(0, 3) : DEMO_EVENTS;
 
   return (
-    <div className="bg-[#060709] text-[#F4F1EA] relative overflow-hidden">
+    <div className="bg-transparent text-[#F4F1EA] relative overflow-hidden">
       {/* 1. FIRST VIEWPORT: Laser Stage Backdrop + Display Typography + Search + 3-Col Bento Cards */}
-      <section className="relative pt-20 sm:pt-24 pb-8">
-        {/* Full-bleed Stage Concert Photography Backdrop fading cleanly into #060709 */}
+      <section className="relative pt-20 sm:pt-24 pb-16">
+        {/* Seamless Full-bleed Stage Concert Photography Backdrop fading cleanly into Categories */}
         <div
-          className="absolute inset-x-0 top-0 h-[490px] z-0 pointer-events-none overflow-hidden"
+          className="absolute inset-x-0 top-0 h-[820px] z-0 pointer-events-none overflow-hidden"
           style={{
-            WebkitMaskImage: 'linear-gradient(to bottom, black 54%, transparent 100%)',
-            maskImage: 'linear-gradient(to bottom, black 54%, transparent 100%)'
+            WebkitMaskImage: 'linear-gradient(to bottom, black 32%, rgba(0, 0, 0, 0.56) 68%, transparent 100%)',
+            maskImage: 'linear-gradient(to bottom, black 32%, rgba(0, 0, 0, 0.56) 68%, transparent 100%)'
           }}
         >
           <img
@@ -114,9 +116,9 @@ export default function Home() {
                 setHeroImgSrc(FALLBACK_EVENT_IMAGE);
               }
             }}
-            className="w-full h-full object-cover object-center opacity-80 contrast-[1.08] saturate-[1.15] animate-hero-zoom"
+            className="w-full h-full object-cover object-center opacity-90 contrast-[1.08] saturate-[1.15] animate-hero-zoom"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#060709]/65 via-[#060709]/35 to-[#060709]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#06080E]/55 via-[#06080E]/28 to-[#06080E]/65" />
         </div>
 
         <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
@@ -202,16 +204,37 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 2. BROWSE BY CATEGORY */}
-      <section id="categories" className="relative z-10 py-10 border-t border-white/10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 2. BROWSE BY CATEGORY (Overlapping Feathered Arena Horizon — zero gap or horizontal line) */}
+      <section id="categories" className="relative z-10 -mt-12 pt-16 pb-20 overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
+          style={{
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%)',
+            maskImage: 'linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%)'
+          }}
+        >
+          <img
+            src={CATEGORY_HORIZON_IMAGE}
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover object-center opacity-[0.4] saturate-125"
+          />
+          <div className="absolute inset-0 bg-[#07090F]/55" />
+        </div>
+
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
-            <h2 className="font-display uppercase tracking-tight text-2xl sm:text-3xl font-bold text-white">
-              Browse by Category
-            </h2>
+            <div>
+              <h2 className="font-display uppercase tracking-tight text-2xl sm:text-3xl font-bold text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
+                Browse by Category
+              </h2>
+              <p className="mt-1 text-xs sm:text-sm text-slate-200">
+                Explore curated nights across live music, stand-up, stadium sports, and cultural stages.
+              </p>
+            </div>
             <Link
               to="/events"
-              className="group inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-colors"
+              className="group inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-200 hover:text-white transition-colors"
             >
               <span>View All Events</span>
               <ArrowRight className="w-4 h-4 text-[#FF4D2D] transition-transform group-hover:translate-x-1" />
@@ -222,6 +245,66 @@ export default function Home() {
             {CATEGORIES.map((cat) => (
               <CategoryCard key={cat.id} category={cat} variant="dark-tile" />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3. FULL-BLEED OPEN VENUE GATE STAGE (Unboxed typography floating cleanly over 100vw stadium crowd) */}
+      <section className="relative z-10 -mt-14 pt-20 pb-24 overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
+          style={{
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 22%, black 80%, transparent 100%)',
+            maskImage: 'linear-gradient(to bottom, transparent 0%, black 22%, black 80%, transparent 100%)'
+          }}
+        >
+          <img
+            src={SHOWCASE_CROWD_IMAGE}
+            alt="Night stadium crowd illuminated under concert confetti and stage lights"
+            className="w-full h-full object-cover object-center opacity-85 contrast-[1.08] saturate-110"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#05070C]/92 via-[#05070C]/60 via-[55%] to-transparent" />
+        </div>
+
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-xl space-y-5">
+            <h2 className="font-display uppercase tracking-tight text-3xl sm:text-5xl font-bold text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.85)]">
+              Built for the Venue Gate
+            </h2>
+            <p className="text-sm sm:text-base text-slate-200 leading-relaxed drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
+              Every confirmed booking issues signed single-use QR entry passes inside your ticket wallet, while organizers track live capacity and door check-ins from Organizer Studio.
+            </p>
+
+            <div className="flex flex-wrap gap-3 pt-1 text-xs sm:text-sm text-slate-100">
+              <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-black/50 backdrop-blur-md border border-white/15">
+                <QrCode className="w-4 h-4 text-[#FF4D2D] shrink-0" />
+                <span>Instant verified QR ticket wallet</span>
+              </div>
+              <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-black/50 backdrop-blur-md border border-white/15">
+                <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0" />
+                <span>Real-time Razorpay &amp; gate sync</span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <Link to="/organizer">
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="bg-[#D9381E] hover:bg-[#C92C12] text-white rounded-xl px-5 py-2.5 text-xs sm:text-sm font-semibold shadow-lg"
+                >
+                  <span>Open Organizer Studio</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+              <Link
+                to="/events"
+                className="px-4 py-2.5 rounded-xl bg-black/45 hover:bg-black/65 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-semibold text-white transition-colors"
+              >
+                Browse All Events
+              </Link>
+            </div>
           </div>
         </div>
       </section>

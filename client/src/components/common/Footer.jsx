@@ -5,7 +5,7 @@ import Logo from './Logo';
 
 export default function Footer() {
   return (
-    <footer className="bg-[#050507] text-slate-300 py-8 border-t border-white/10">
+    <footer className="relative z-10 -mt-10 pt-14 pb-8 bg-gradient-to-b from-transparent via-[#05070C]/85 via-[25%] to-[#040508] text-slate-300">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-6 border-b border-white/10 items-start">
           {/* Col 1: Brand Info */}

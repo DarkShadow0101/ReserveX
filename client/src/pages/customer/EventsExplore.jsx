@@ -289,7 +289,7 @@ export default function EventsExplore() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-24 bg-[#101219] rounded-2xl border border-white/10 p-8 space-y-4">
+        <div className="text-center py-24 bg-[#0C1018]/78 backdrop-blur-xl rounded-2xl border border-white/[0.08] p-8 space-y-4 shadow-card">
           <div className="w-16 h-16 rounded-full bg-[#FF4D2D]/15 border border-[#FF4D2D]/30 text-[#FF4D2D] flex items-center justify-center mx-auto">
             <Search className="w-8 h-8" />
           </div>

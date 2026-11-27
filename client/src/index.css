@@ -13,7 +13,7 @@
 
   html,
   body {
-    background-color: #060709;
+    background-color: #07090D;
     color: #F4F1EA;
     overflow-x: hidden;
   }
@@ -51,19 +51,23 @@
   background: #363C52;
 }
 
-/* Smoked Glass Utilities */
+/* Smoked Glass & Venue Architecture Utilities */
 .glass-panel {
-  background: rgba(16, 18, 25, 0.88);
+  background: rgba(16, 19, 28, 0.88);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .glass-dark {
-  background: rgba(9, 10, 14, 0.9);
+  background: rgba(9, 11, 16, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stage-elevated-band {
+  background-color: #0B0F17;
 }
 
 /* Restrained entrance & stage photography motion */
