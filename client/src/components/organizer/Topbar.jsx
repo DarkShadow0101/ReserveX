@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Menu, LogOut, ExternalLink } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import ThemeToggle from '../common/ThemeToggle';
 
 export default function Topbar({ onToggleMobile }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { showToast } = useToast();
   const [profileOpen, setProfileOpen] = useState(false);
 
   const initials = user?.fullName
@@ -19,6 +22,7 @@ export default function Topbar({ onToggleMobile }) {
 
   const handleLogout = () => {
     logout();
+    showToast('Signed out of Organizer Studio', 'info');
     navigate('/login');
   };
 
@@ -51,11 +55,13 @@ export default function Topbar({ onToggleMobile }) {
         </div>
       </div>
 
-      {/* Right: Gate Scanner shortcut & Profile menu */}
+      {/* Right: Theme Toggle, Gate Scanner shortcut & Profile menu */}
       <div className="flex items-center gap-3">
+        <ThemeToggle compact={true} />
+
         <Link
           to="/organizer/check-in"
-          className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#12151E] border border-white/10 hover:border-[#10B981]/50 text-xs font-semibold text-slate-200 hover:text-white transition-colors"
+          className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#12151E] border border-white/10 hover:border-[#10B981]/50 text-xs font-semibold text-slate-200 hover:text-white transition-all active:scale-95"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
           <span>Gate Scanner</span>
@@ -65,7 +71,7 @@ export default function Topbar({ onToggleMobile }) {
           <button
             type="button"
             onClick={() => setProfileOpen(!profileOpen)}
-            className="flex items-center gap-2 cursor-pointer focus:outline-none"
+            className="flex items-center gap-2 cursor-pointer focus:outline-none active:scale-95 transition-transform"
             aria-label="Open organizer profile menu"
           >
             <div className="w-9 h-9 rounded-xl bg-[#12151E] border border-white/15 hover:border-[#FF4D2D] text-[#F4F1EA] font-mono font-bold flex items-center justify-center text-xs transition-colors">
@@ -75,7 +81,7 @@ export default function Topbar({ onToggleMobile }) {
 
           {profileOpen && (
             <div
-              className="absolute right-0 mt-2 w-56 bg-[#101219] text-[#F4F1EA] rounded-xl shadow-2xl border border-white/15 py-2 z-50"
+              className="animate-dropdown-in absolute right-0 mt-2 w-56 bg-[#101219] text-[#F4F1EA] rounded-xl shadow-2xl border border-white/15 py-2 z-50"
               onClick={() => setProfileOpen(false)}
             >
               <div className="px-4 py-2 border-b border-white/10">

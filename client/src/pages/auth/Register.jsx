@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { extractErrorMessage } from '../../utils/errors';
-import Logo from '../../components/common/Logo';
+import { CURATED_STOCK_IMAGES } from '../../mocks/eventImages';
+import AuthStageShell from '../../components/auth/AuthStageShell';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 
@@ -47,112 +48,92 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-navy text-white relative flex items-center justify-center p-4 sm:p-6 overflow-hidden">
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(ellipse 65% 45% at 50% 0%, rgba(255, 77, 45, 0.14), transparent 65%)'
-        }}
-      />
-
-      <div className="relative z-10 w-full max-w-md space-y-6">
-        <div className="text-center space-y-2">
-          <Logo light={true} />
-          <h1 className="font-display uppercase text-3xl sm:text-4xl font-bold text-white pt-2">
-            Create Your Account
-          </h1>
-          <p className="text-sm text-slate-400">
-            Join ReserveX to book live events or launch your own venue shows.
-          </p>
-        </div>
-
-        {error && (
-          <div className="p-4 bg-rose-500/15 border border-rose-400/30 rounded-xl text-xs text-rose-200 flex items-start gap-2.5">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        <form
-          onSubmit={handleSubmit}
-          className="bg-[#101219] rounded-2xl p-8 border border-white/15 shadow-card space-y-5"
+    <AuthStageShell
+      mode="register"
+      redirectUrl={redirectUrl}
+      backgroundImage={CURATED_STOCK_IMAGES[1]}
+      displayTitle="Claim Front Row"
+      displaySerif="Your Nights, Reserved."
+      subtitle="Create one account to book concerts, festivals, comedy, or host your own events."
+    >
+      {error && (
+        <div
+          role="alert"
+          className="p-3.5 bg-rose-500/15 border border-rose-400/30 rounded-xl text-xs text-rose-200 flex items-start gap-2.5"
         >
-          <Input
-            label="Full Name"
-            type="text"
-            required
-            theme="dark"
-            placeholder="John Doe"
-            icon={User}
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-          />
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+          <span>{error}</span>
+        </div>
+      )}
 
-          <Input
-            label="Email Address"
-            type="email"
-            required
-            theme="dark"
-            placeholder="you@example.com"
-            icon={Mail}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="Full Name"
+          type="text"
+          required
+          theme="dark"
+          autoComplete="name"
+          placeholder="Your full name"
+          icon={User}
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+        />
 
-          <Input
-            label="Password"
-            type={showPassword ? 'text' : 'password'}
-            required
-            theme="dark"
-            placeholder="Min. 6 characters"
-            icon={Lock}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            rightElement={
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                className="text-slate-400 hover:text-white cursor-pointer"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            }
-          />
+        <Input
+          label="Email Address"
+          type="email"
+          required
+          theme="dark"
+          autoComplete="email"
+          placeholder="you@example.com"
+          icon={Mail}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-          <div className="text-xs text-slate-300 space-y-1.5 pt-1">
-            <p className="flex items-center gap-2 text-[#10B981]">
-              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-              <span>Instant digital QR passes in your wallet</span>
-            </p>
-            <p className="flex items-center gap-2 text-[#10B981]">
-              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-              <span>10-minute checkout seat reservation</span>
-            </p>
-          </div>
-
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            loading={loading}
-            className="w-full rounded-xl bg-[#FF4D2D] hover:bg-[#E63E20] shadow-glow py-3.5"
-          >
-            Create Account <ArrowRight className="w-4 h-4 ml-1" />
-          </Button>
-
-          <div className="pt-2 text-center text-xs text-slate-400">
-            Already have an account?{' '}
-            <Link
-              to={`/login${redirectUrl !== '/' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
-              className="text-[#FF4D2D] font-bold hover:text-white hover:underline"
+        <Input
+          label="Password"
+          type={showPassword ? 'text' : 'password'}
+          required
+          theme="dark"
+          autoComplete="new-password"
+          placeholder="Min. 6 characters"
+          icon={Lock}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          rightElement={
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="text-slate-400 hover:text-white cursor-pointer"
             >
-              Sign In
-            </Link>
-          </div>
-        </form>
-      </div>
-    </div>
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          }
+        />
+
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          loading={loading}
+          className="w-full rounded-xl bg-[#D9381E] hover:bg-[#C92C12] text-white py-3 text-sm sm:text-base mt-1"
+        >
+          <span>Create ReserveX Account</span>
+          <ArrowRight className="w-4 h-4" />
+        </Button>
+
+        <p className="pt-1 text-center text-xs text-slate-300">
+          Already registered?{' '}
+          <Link
+            to={`/login${redirectUrl !== '/' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
+            className="text-[#FF6B4A] font-semibold hover:text-white hover:underline"
+          >
+            Sign In
+          </Link>
+        </p>
+      </form>
+    </AuthStageShell>
   );
 }

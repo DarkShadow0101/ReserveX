@@ -18,8 +18,9 @@ export default function CategoryCard({ category, variant = 'dark-tile' }) {
 
   return (
     <Link
+      data-photo-overlay="true"
       to={`/events?category=${encodeURIComponent(category.id || category.name.toLowerCase())}`}
-      className={`group relative h-44 sm:h-48 rounded-2xl overflow-hidden block border backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[#FF4D2D] focus:ring-offset-2 focus:ring-offset-[#06080E] ${
+      className={`group relative h-44 sm:h-48 rounded-2xl overflow-hidden block border backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#FF4D2D] focus:ring-offset-2 focus:ring-offset-[#06080E] ${
         variant === 'dark-tile'
           ? 'border-white/[0.15] hover:border-[#FF4D2D]/70 bg-[#0B0E16]/55 shadow-card'
           : 'border-white/15 shadow-soft hover:border-[#FF4D2D]/60'

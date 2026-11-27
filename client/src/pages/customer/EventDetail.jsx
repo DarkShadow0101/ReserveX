@@ -168,7 +168,10 @@ export default function EventDetail() {
       </div>
 
       {/* 1. Stage Cover Banner */}
-      <div className="relative rounded-2xl overflow-hidden shadow-card border border-white/10 aspect-[21/9] min-h-[340px] max-h-[480px] bg-[#0B0D12]">
+      <div
+        data-photo-overlay="true"
+        className="relative rounded-2xl overflow-hidden shadow-card border border-white/10 aspect-[21/9] min-h-[340px] max-h-[480px] bg-[#0B0D12]"
+      >
         <img
           src={imgSrc}
           alt={event.title}

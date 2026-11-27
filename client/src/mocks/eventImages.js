@@ -77,6 +77,39 @@ export const CURATED_STOCK_IMAGES = [
   "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1200&q=85",
 ];
 
+function hashString(input) {
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+const CATEGORY_IMAGE_POOLS = {
+  comedy: [CURATED_STOCK_IMAGES[4], CURATED_STOCK_IMAGES[5]],
+  festivals: [
+    CURATED_STOCK_IMAGES[0],
+    CURATED_STOCK_IMAGES[2],
+    SHOWCASE_CROWD_IMAGE,
+    CATEGORY_HORIZON_IMAGE
+  ],
+  edm: [CURATED_STOCK_IMAGES[2], CURATED_STOCK_IMAGES[0], SHOWCASE_CROWD_IMAGE],
+  sports: [CATEGORIES[3].image, SHOWCASE_CROWD_IMAGE],
+  workshops: [CURATED_STOCK_IMAGES[3], CATEGORIES[4].image],
+  arts: [CATEGORIES[5].image, CURATED_STOCK_IMAGES[5]],
+  concerts: [
+    CURATED_STOCK_IMAGES[1],
+    CURATED_STOCK_IMAGES[6],
+    HERO_IMAGE,
+    STAGE_HORIZON_IMAGE
+  ]
+};
+
+/**
+ * Selects an atmospheric photography fallback deterministically per event ID/title
+ * across curated category pools so cards with similar keywords still display varied visuals.
+ */
 export function getEventImage(event) {
   if (!event) return CURATED_STOCK_IMAGES[0];
   if (event.image) return event.image;
@@ -85,29 +118,25 @@ export function getEventImage(event) {
   const desc = (event.description || '').toLowerCase();
   const cat = (event.categoryLabel || '').toLowerCase();
   const combined = `${cat} ${title} ${desc}`;
+  const key = `${event._id || event.id || ''}:${event.title || ''}:${event.venue || ''}`;
+  const seed = hashString(key || '0');
 
-  if (combined.includes('comedy') || combined.includes('standup') || combined.includes('laughter')) {
-    return CURATED_STOCK_IMAGES[4];
-  }
-  if (combined.includes('festival') || combined.includes('sunburn') || combined.includes('carnival') || combined.includes('solstice')) {
-    return CURATED_STOCK_IMAGES[0];
-  }
-  if (combined.includes('edm') || combined.includes('dj') || combined.includes('electronic')) {
-    return CURATED_STOCK_IMAGES[2];
-  }
-  if (combined.includes('tech') || combined.includes('summit') || combined.includes('conference') || combined.includes('hackathon')) {
-    return CURATED_STOCK_IMAGES[3];
-  }
-  if (combined.includes('sing') || combined.includes('arijit') || combined.includes('diljit') || combined.includes('concert') || combined.includes('tour') || combined.includes('live')) {
-    return CURATED_STOCK_IMAGES[1];
+  let pool = CURATED_STOCK_IMAGES;
+  if (/\b(comedy|standup|stand-up|laughter|improv)\b/.test(combined)) {
+    pool = CATEGORY_IMAGE_POOLS.comedy;
+  } else if (/\b(sports?|cricket|football|marathon|league|cup|stadium|match|derby)\b/.test(combined)) {
+    pool = CATEGORY_IMAGE_POOLS.sports;
+  } else if (/\b(workshops?|summit|conference|hackathon|bootcamp|seminar|talks?|tech)\b/.test(combined)) {
+    pool = CATEGORY_IMAGE_POOLS.workshops;
+  } else if (/\b(art|arts|exhibition|theatre|theater|gallery|museum|play|drama)\b/.test(combined)) {
+    pool = CATEGORY_IMAGE_POOLS.arts;
+  } else if (/\b(edm|dj|electronic|techno|rave)\b/.test(combined)) {
+    pool = CATEGORY_IMAGE_POOLS.edm;
+  } else if (/\b(festival|festivals|sunburn|carnival|solstice|nh7|lollapalooza)\b/.test(combined)) {
+    pool = CATEGORY_IMAGE_POOLS.festivals;
+  } else if (/\b(sing|arijit|diljit|concerts?|tour|live|orchestra|symphony|band)\b/.test(combined)) {
+    pool = CATEGORY_IMAGE_POOLS.concerts;
   }
 
-  const key = event._id || event.id || event.title || '0';
-  let hash = 0;
-  for (let i = 0; i < key.length; i++) {
-    hash = (hash << 5) - hash + key.charCodeAt(i);
-    hash |= 0;
-  }
-  const index = Math.abs(hash) % CURATED_STOCK_IMAGES.length;
-  return CURATED_STOCK_IMAGES[index];
+  return pool[seed % pool.length];
 }

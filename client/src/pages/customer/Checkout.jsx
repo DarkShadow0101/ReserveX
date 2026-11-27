@@ -19,6 +19,8 @@ import { extractErrorMessage } from '../../utils/errors';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Button from '../../components/ui/Button';
 import { getEventImage, FALLBACK_EVENT_IMAGE } from '../../mocks/eventImages';
+import { useTheme } from '../../context/ThemeContext';
+import { useToast } from '../../context/ToastContext';
 
 const RESERVEX_RZP_LOGO =
   'data:image/svg+xml;utf8,' +
@@ -29,6 +31,8 @@ const RESERVEX_RZP_LOGO =
 export default function Checkout() {
   const { bookingId } = useParams();
   const navigate = useNavigate();
+  const { isDark } = useTheme();
+  const { showToast } = useToast();
 
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -113,6 +117,7 @@ export default function Checkout() {
               });
 
               if (verifyRes.success) {
+                showToast('Payment verified & QR tickets issued!');
                 setSuccess(true);
                 return;
               }
@@ -152,7 +157,7 @@ export default function Checkout() {
           },
           theme: {
             color: '#D9381E',
-            backdrop_color: '#07090D'
+            backdrop_color: isDark ? '#06080E' : '#F5F3EE'
           }
         };
 

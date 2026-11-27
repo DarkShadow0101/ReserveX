@@ -233,6 +233,26 @@ describe('Event Management API (/api/events & /api/organizations/:id/events)', (
       expect(returnedIds).not.toContain(draftEventId);
     });
 
+    it('GET /api/events should filter by location, category, and date on the server', async () => {
+      const matchRes = await request(app).get('/api/events').query({
+        search: 'Robotics',
+        location: 'Lab 4',
+        category: 'workshops'
+      });
+
+      expect(matchRes.statusCode).toBe(200);
+      const matchedIds = matchRes.body.data.events.map((e) => e._id);
+      expect(matchedIds).toContain(publishedEventId);
+
+      const missRes = await request(app).get('/api/events').query({
+        location: 'Mumbai',
+        category: 'comedy',
+        search: `Robotics Workshop ${uniqueSuffix}`
+      });
+      expect(missRes.statusCode).toBe(200);
+      expect(missRes.body.data.events).toHaveLength(0);
+    });
+
     it('GET /api/events/:id should return 404 for draft event', async () => {
       const res = await request(app).get(`/api/events/${draftEventId}`);
       expect(res.statusCode).toBe(404);

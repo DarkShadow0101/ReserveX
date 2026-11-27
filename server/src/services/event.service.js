@@ -2,7 +2,59 @@ const mongoose = require('mongoose');
 const Event = require('../models/event.model');
 const Organization = require('../models/organization.model');
 const Membership = require('../models/membership.model');
+const TicketType = require('../models/ticketType.model');
 const AppError = require('../utils/errors');
+
+const CATEGORY_KEYWORDS = {
+  concerts: '\\b(?:concerts?|tour|live|arijit|diljit|acoustic|symphony|orchestra|band|music)\\b',
+  festivals: '\\b(?:festivals?|sunburn|carnival|solstice|edm|rave|weekender|multi-stage)\\b',
+  comedy: '\\b(?:comedy|standup|stand-up|laughter|improv|comic|open mic)\\b',
+  sports: '\\b(?:sports?|cricket|football|marathon|league|cup|match|stadium|derby)\\b',
+  workshops: '\\b(?:workshops?|summit|conference|hackathon|bootcamp|seminar|talks?|session)\\b',
+  arts: '\\b(?:art|arts|exhibition|theatre|theater|gallery|museum|play|cultural|culture)\\b'
+};
+
+/** Escapes user-supplied regex metacharacters for safe MongoDB pattern queries. */
+function escapeRegex(value) {
+  return value.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function buildLocationRegex(location) {
+  const normalized = location.trim().toLowerCase();
+  if (normalized === 'bengaluru' || normalized === 'bangalore') {
+    return new RegExp('bengaluru|bangalore', 'i');
+  }
+  return new RegExp(escapeRegex(location), 'i');
+}
+
+function buildCategoryClause(category) {
+  const normalized = category.trim().toLowerCase();
+  const pattern = CATEGORY_KEYWORDS[normalized] || escapeRegex(category);
+  const regex = new RegExp(pattern, 'i');
+  return { $or: [{ title: regex }, { description: regex }] };
+}
+
+function buildDateWindow(windowKey) {
+  const now = new Date();
+  if (windowKey === 'weekend') {
+    const day = now.getDay(); // 0 Sun .. 6 Sat
+    let rangeStart = now;
+    if (day >= 1 && day <= 4) {
+      rangeStart = new Date(now);
+      rangeStart.setDate(now.getDate() + (5 - day));
+      rangeStart.setHours(0, 0, 0, 0);
+    }
+    const daysUntilSunday = day === 0 ? 0 : 7 - day;
+    const rangeEnd = new Date(now);
+    rangeEnd.setDate(now.getDate() + daysUntilSunday);
+    rangeEnd.setHours(23, 59, 59, 999);
+    return { $gte: rangeStart, $lte: rangeEnd };
+  }
+  if (windowKey === 'month') {
+    return { $gte: now, $lte: new Date(now.getTime() + 30 * 86400000) };
+  }
+  return null;
+}
 
 // Helper to verify that an organizer has permission to manage an event
 async function verifyEventOrganizerAccess(eventId, userId, allowedRoles = ['owner', 'staff']) {
@@ -68,8 +120,17 @@ async function getEventsByOrganization(orgId, query = {}) {
 }
 
 // 3. Public event discovery (published events only)
-async function getPublicEvents({ search, organizationId, page = 1, limit = 20 } = {}) {
+async function getPublicEvents({
+  search,
+  organizationId,
+  location,
+  date,
+  category,
+  page = 1,
+  limit = 20
+} = {}) {
   const filter = { status: 'published' };
+  const andClauses = [];
 
   if (organizationId) {
     if (!mongoose.Types.ObjectId.isValid(organizationId)) {
@@ -78,22 +139,39 @@ async function getPublicEvents({ search, organizationId, page = 1, limit = 20 } 
     filter.organization = organizationId;
   }
 
+  if (location && location.trim()) {
+    filter.venue = buildLocationRegex(location);
+  }
+
+  if (date && date.trim()) {
+    const dateRange = buildDateWindow(date.trim().toLowerCase());
+    if (dateRange) {
+      filter.startsAt = dateRange;
+    }
+  }
+
   if (search && search.trim()) {
-    // Escape regex metacharacters to protect MongoDB from ReDoS / invalid pattern crashes
-    const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const searchRegex = new RegExp(escaped, 'i');
-    filter.$or = [
-      { title: searchRegex },
-      { venue: searchRegex },
-      { description: searchRegex }
-    ];
+    const searchRegex = new RegExp(escapeRegex(search), 'i');
+    andClauses.push({
+      $or: [{ title: searchRegex }, { venue: searchRegex }, { description: searchRegex }]
+    });
+  }
+
+  if (category && category.trim()) {
+    andClauses.push(buildCategoryClause(category));
+  }
+
+  if (andClauses.length === 1) {
+    Object.assign(filter, andClauses[0]);
+  } else if (andClauses.length > 1) {
+    filter.$and = andClauses;
   }
 
   const parsedPage = Math.max(1, parseInt(page, 10) || 1);
   const parsedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 20));
   const skip = (parsedPage - 1) * parsedLimit;
 
-  const [events, total] = await Promise.all([
+  const [rawEvents, total] = await Promise.all([
     Event.find(filter)
       .populate('organization', 'name slug')
       .sort({ startsAt: 1 })
@@ -101,6 +179,29 @@ async function getPublicEvents({ search, organizationId, page = 1, limit = 20 } 
       .limit(parsedLimit),
     Event.countDocuments(filter)
   ]);
+
+  const eventIds = rawEvents.map((e) => e._id);
+  const ticketMap = new Map();
+  if (eventIds.length > 0) {
+    const ticketTypes = await TicketType.find({
+      event: { $in: eventIds },
+      isActive: true
+    })
+      .select('event name price currency totalCapacity reservedCount soldCount isActive')
+      .sort({ price: 1 })
+      .lean();
+
+    for (const tier of ticketTypes) {
+      const key = String(tier.event);
+      if (!ticketMap.has(key)) ticketMap.set(key, []);
+      ticketMap.get(key).push(tier);
+    }
+  }
+
+  const events = rawEvents.map((doc) => ({
+    ...doc.toObject(),
+    ticketTypes: ticketMap.get(String(doc._id)) || []
+  }));
 
   return {
     events,

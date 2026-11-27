@@ -4,6 +4,18 @@ import { MapPin, Heart, ArrowRight, Users } from 'lucide-react';
 import { formatDateBadge } from '../../utils/date';
 import { formatPaiseToINR, formatPriceStarting } from '../../utils/currency';
 import { getEventImage, FALLBACK_EVENT_IMAGE } from '../../mocks/eventImages';
+import { useToast } from '../../context/ToastContext';
+
+const FAVORITES_KEY = 'reservex-favorites';
+
+function readSavedFavorites() {
+  try {
+    const raw = localStorage.getItem(FAVORITES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
 
 function getCompactPriceLabel(ticketTypes) {
   if (!ticketTypes || !Array.isArray(ticketTypes) || ticketTypes.length === 0) {
@@ -17,7 +29,9 @@ function getCompactPriceLabel(ticketTypes) {
 }
 
 export default function EventCard({ event, variant = 'default' }) {
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { showToast } = useToast();
+  const eventKey = String(event._id || event.id || event.title || '');
+  const [isFavorite, setIsFavorite] = useState(() => readSavedFavorites().includes(eventKey));
   const [imgSrc, setImgSrc] = useState(() => getEventImage(event));
 
   const dateBadge = formatDateBadge(event.startsAt);
@@ -35,6 +49,26 @@ export default function EventCard({ event, variant = 'default' }) {
     }
   };
 
+  const toggleFavorite = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const nextState = !isFavorite;
+    setIsFavorite(nextState);
+    try {
+      const current = readSavedFavorites();
+      const updated = nextState
+        ? Array.from(new Set([...current, eventKey]))
+        : current.filter((item) => item !== eventKey);
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify(updated));
+    } catch {
+      // Ignore storage errors
+    }
+    showToast(
+      nextState ? `Saved "${event.title}"` : `Removed "${event.title}" from saved`,
+      nextState ? 'accent' : 'info'
+    );
+  };
+
   const isComedyStage =
     !event.image &&
     (`${event.categoryLabel || ''} ${event.title || ''} ${event.description || ''}`
@@ -44,7 +78,10 @@ export default function EventCard({ event, variant = 'default' }) {
   // REFINED 3B EQUAL BENTO CARD (Used in the 3-column Home fold grid)
   if (variant === 'bento-open') {
     return (
-      <article className="group relative h-48 sm:h-52 rounded-2xl overflow-hidden bg-[#101219] border border-white/15 hover:border-white/35 focus-within:ring-2 focus-within:ring-[#FF4D2D] shadow-card transition-all duration-300 flex flex-col justify-between p-4">
+      <article
+        data-photo-overlay="true"
+        className="group relative h-48 sm:h-52 rounded-2xl overflow-hidden bg-[#101219] border border-white/15 hover:border-white/35 focus-within:ring-2 focus-within:ring-[#FF4D2D] shadow-card transition-all duration-300 active:scale-[0.985] flex flex-col justify-between p-4"
+      >
         <Link
           to={eventHref}
           aria-label={`View ${event.title || 'event'} in ${event.venue || 'India'} starting ${minPriceFormatted}`}
@@ -107,8 +144,8 @@ export default function EventCard({ event, variant = 'default' }) {
 
   // GRID CARD (Used in EventsExplore)
   return (
-    <article className="group relative bg-[#101219] rounded-2xl overflow-hidden border border-white/10 hover:border-[#FF4D2D]/55 shadow-soft hover:-translate-y-0.5 transition-all duration-300 flex flex-col">
-      <Link to={eventHref} className="relative aspect-[16/10] overflow-hidden bg-[#060709] block">
+    <article className="group relative bg-[#101219] rounded-2xl overflow-hidden border border-white/10 hover:border-[#FF4D2D]/55 shadow-soft hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-300 flex flex-col">
+      <Link data-photo-overlay="true" to={eventHref} className="relative aspect-[16/10] overflow-hidden bg-[#060709] block">
         <img
           src={imgSrc}
           alt={event.title || 'Event cover'}
@@ -116,7 +153,7 @@ export default function EventCard({ event, variant = 'default' }) {
           className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#101219] via-[#060709]/25 to-black/25" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#101219] via-[#060709]/25 to-black/25 pointer-events-none" />
 
         <div className="absolute top-3.5 left-3.5 bg-[#090A0E]/90 text-white rounded-xl px-3 py-1.5 text-center border border-white/15 select-none">
           <span className="block font-mono text-[9px] font-bold tracking-widest text-slate-300">
@@ -132,19 +169,15 @@ export default function EventCard({ event, variant = 'default' }) {
 
         <button
           type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsFavorite((prev) => !prev);
-          }}
+          onClick={toggleFavorite}
           aria-label={isFavorite ? 'Remove from favorites' : 'Save to favorites'}
-          className={`absolute top-3.5 right-3.5 p-2 rounded-full border transition-all duration-200 cursor-pointer ${
+          className={`absolute top-3.5 right-3.5 p-2 rounded-full border transition-all duration-200 active:scale-125 cursor-pointer ${
             isFavorite
-              ? 'bg-[#FF4D2D] border-[#FF4D2D] text-white'
+              ? 'bg-[#D9381E] border-[#D9381E] text-white scale-105'
               : 'bg-[#090A0E]/75 border-white/15 text-white/85 hover:bg-[#090A0E] hover:text-white'
           }`}
         >
-          <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
+          <Heart className={`w-4 h-4 transition-transform ${isFavorite ? 'fill-current scale-110' : ''}`} />
         </button>
 
         {event.isDemo && (
@@ -159,20 +192,20 @@ export default function EventCard({ event, variant = 'default' }) {
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
           <Link to={eventHref} className="block">
-            <h3 className="text-lg font-sans font-bold tracking-tight text-white group-hover:text-[#F4F1EA] transition-colors line-clamp-1">
+            <h3 className="text-lg font-sans font-bold tracking-tight text-white group-hover:text-[#D9381E] transition-colors line-clamp-1">
               {event.title}
             </h3>
           </Link>
 
           <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-400">
-            <MapPin className="w-3.5 h-3.5 text-[#FF4D2D] shrink-0" />
+            <MapPin className="w-3.5 h-3.5 text-[#D9381E] shrink-0" />
             <span className="truncate">{event.venue || 'Venue to be announced'}</span>
           </div>
         </div>
 
         <div className="mt-5 pt-3.5 border-t border-white/10 flex items-center justify-between gap-3">
           <div>
-            <span className="block font-mono text-[10px] uppercase tracking-wider font-semibold text-slate-400">
+            <span className="block font-mono text-[11px] uppercase tracking-wider font-semibold text-slate-400">
               Tickets
             </span>
             <span className="font-mono text-sm font-bold text-white">{priceDisplay}</span>
@@ -189,7 +222,7 @@ export default function EventCard({ event, variant = 'default' }) {
               className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300 group-hover:text-white transition-colors"
             >
               <span>View Event</span>
-              <span className="w-7 h-7 rounded-full bg-[#F4F1EA] text-[#060709] flex items-center justify-center group-hover:bg-[#FF4D2D] group-hover:text-white transition-colors">
+              <span className="w-7 h-7 rounded-full bg-[#D9381E] text-white flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
                 <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </Link>

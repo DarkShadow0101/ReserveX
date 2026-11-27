@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function SelectDropdown({
   value,
@@ -8,19 +9,21 @@ export default function SelectDropdown({
   placeholder = 'Select...',
   icon: Icon,
   iconClassName = '',
-  theme = 'dark',
+  theme,
   variant = 'boxed',
   ariaLabel = 'Select option',
   className = '',
   menuAlign = 'left'
 }) {
+  const { isDark: ctxDark } = useTheme();
+  const isDark = theme === 'light' ? false : ctxDark;
+
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
   const displayLabel = selectedOption ? selectedOption.label : placeholder;
-  const isDark = theme === 'dark';
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -65,19 +68,19 @@ export default function SelectDropdown({
 
   const triggerStyles =
     variant === 'inline'
-      ? `w-full flex items-center justify-between gap-2 bg-transparent px-3.5 py-2.5 lg:py-2 text-xs sm:text-sm font-medium cursor-pointer rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D2D] ${
-          isDark ? 'text-slate-200 hover:text-white' : 'text-slate-200 hover:text-white'
+      ? `w-full flex items-center justify-between gap-2 bg-transparent px-3.5 py-2.5 lg:py-2 text-xs sm:text-sm font-medium cursor-pointer rounded-lg transition-all active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D2D] ${
+          isDark ? 'text-slate-200 hover:text-white' : 'text-slate-700 hover:text-slate-950'
         }`
       : isDark
-      ? `w-full flex items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm font-medium cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D2D] ${
+      ? `w-full flex items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm font-medium cursor-pointer transition-all active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D2D] ${
           open
             ? 'bg-white/[0.08] border-[#FF4D2D] ring-2 ring-[#FF4D2D]/20 text-white'
             : 'bg-[#0B0D12] border-white/10 hover:border-white/25 text-slate-200'
         }`
-      : `w-full flex items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm font-medium cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D2D] ${
+      : `w-full flex items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm font-medium cursor-pointer transition-all active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D9381E] ${
           open
-            ? 'bg-[#12151E] border-[#FF4D2D] ring-2 ring-[#FF4D2D]/20 text-white'
-            : 'bg-[#12151E] border-white/15 hover:border-white/30 text-slate-200'
+            ? 'bg-white border-[#D9381E] ring-2 ring-[#D9381E]/15 text-slate-950'
+            : 'bg-white border-slate-900/12 hover:border-slate-900/25 text-slate-800'
         }`;
 
   return (
@@ -102,7 +105,9 @@ export default function SelectDropdown({
         <span className="flex items-center gap-2 min-w-0">
           {Icon && (
             <Icon
-              className={`w-4 h-4 shrink-0 ${iconClassName || 'text-slate-400'}`}
+              className={`w-4 h-4 shrink-0 ${
+                iconClassName || (isDark ? 'text-slate-400' : 'text-slate-500')
+              }`}
             />
           )}
           <span className="truncate">{displayLabel}</span>
@@ -111,16 +116,18 @@ export default function SelectDropdown({
         <ChevronDown
           className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${
             open ? 'rotate-180' : ''
-          } text-slate-400`}
+          } ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
         />
       </button>
 
       {open && (
         <div
           role="listbox"
-          className={`absolute z-50 mt-2 min-w-full w-max max-w-xs rounded-xl border p-1.5 shadow-2xl max-h-64 overflow-y-auto bg-[#101219] border-white/15 text-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.75)] ${
-            menuAlign === 'right' ? 'right-0' : 'left-0'
-          }`}
+          className={`animate-dropdown-in absolute z-50 mt-2 min-w-full w-max max-w-xs rounded-xl border p-1.5 max-h-64 overflow-y-auto ${
+            isDark
+              ? 'bg-[#101219] border-white/15 text-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.75)]'
+              : 'bg-white border-slate-900/12 text-slate-800 shadow-[0_18px_40px_rgba(15,23,42,0.14)]'
+          } ${menuAlign === 'right' ? 'right-0' : 'left-0'}`}
         >
           {options.map((opt, idx) => {
             const isSelected = opt.value === value;
@@ -133,12 +140,16 @@ export default function SelectDropdown({
                 aria-selected={isSelected}
                 onMouseEnter={() => setActiveIndex(idx)}
                 onClick={() => handleSelect(opt.value)}
-                className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-left text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
+                className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-left text-xs sm:text-sm font-medium transition-all active:scale-[0.98] cursor-pointer ${
                   isSelected
                     ? 'bg-[#D9381E] text-white'
                     : isHighlighted
-                    ? 'bg-white/[0.1] text-white'
-                    : 'text-slate-200 hover:bg-white/[0.08] hover:text-white'
+                    ? isDark
+                      ? 'bg-white/[0.1] text-white'
+                      : 'bg-slate-100 text-slate-950'
+                    : isDark
+                    ? 'text-slate-200 hover:bg-white/[0.08] hover:text-white'
+                    : 'text-slate-700 hover:bg-slate-100 hover:text-slate-950'
                 }`}
               >
                 <span className="truncate">{opt.label}</span>

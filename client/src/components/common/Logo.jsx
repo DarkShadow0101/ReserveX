@@ -1,14 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
 
-export default function Logo({ light = true, className = '' }) {
+export default function Logo({ light, className = '' }) {
+  const { isDark } = useTheme();
+  const useLightText = typeof light === 'boolean' && !isDark ? false : isDark;
+
   return (
     <Link
       to="/"
-      className={`group inline-flex items-center gap-2.5 font-sans font-bold tracking-tight select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D2D] rounded-lg ${className}`}
+      className={`group inline-flex items-center gap-2.5 font-sans font-bold tracking-tight select-none transition-transform duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D2D] rounded-lg ${className}`}
     >
       {/* Machined Ticket Stub Emblem */}
-      <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#FF5B3A] to-[#D13117] shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_2px_8px_rgba(0,0,0,0.45)] transition-transform duration-200 group-hover:scale-105">
+      <span
+        data-photo-overlay="true"
+        className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#FF5B3A] to-[#D13117] shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_2px_8px_rgba(0,0,0,0.35)] transition-transform duration-200 group-hover:scale-105"
+      >
         <svg
           width="14"
           height="14"
@@ -26,10 +33,10 @@ export default function Logo({ light = true, className = '' }) {
         </svg>
       </span>
       <span className="inline-flex items-baseline gap-0.5">
-        <span className={`text-lg sm:text-xl tracking-[-0.03em] ${light ? 'text-[#F4F1EA]' : 'text-slate-900'}`}>
+        <span className={`text-lg sm:text-xl tracking-[-0.03em] ${useLightText ? 'text-[#F4F1EA]' : 'text-[#11131B]'}`}>
           ReserveX
         </span>
-        <span className="text-lg sm:text-xl font-black text-[#FF4D2D]">.</span>
+        <span className="text-lg sm:text-xl font-black text-[#D9381E]">.</span>
       </span>
     </Link>
   );

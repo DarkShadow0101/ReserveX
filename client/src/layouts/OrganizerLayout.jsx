@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { Outlet, Navigate, Link } from 'react-router-dom';
+import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import Sidebar from '../components/organizer/Sidebar';
 import Topbar from '../components/organizer/Topbar';
 import { useAuth } from '../context/AuthContext';
 import { useOrg } from '../context/OrgContext';
+import { useTheme } from '../context/ThemeContext';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Button from '../components/ui/Button';
 import { Building2, Plus } from 'lucide-react';
 
 export default function OrganizerLayout() {
+  const location = useLocation();
+  const { isDark } = useTheme();
   const { user, loading: authLoading, isAuthenticated } = useAuth();
   const { activeOrg, organizations, loading: orgLoading, createOrganization } = useOrg();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -113,7 +116,9 @@ export default function OrganizerLayout() {
       <div className="flex-1 md:pl-64 flex flex-col min-w-0">
         <Topbar onToggleMobile={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
         <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
-          <Outlet />
+          <div key={location.pathname} className="animate-page-enter">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

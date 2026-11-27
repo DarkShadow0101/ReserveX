@@ -6,6 +6,7 @@ import EventCard from '../../components/customer/EventCard';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Button from '../../components/ui/Button';
 import SelectDropdown from '../../components/ui/SelectDropdown';
+import { useToast } from '../../context/ToastContext';
 
 const LOCATION_OPTIONS = [
   { value: '', label: 'All Cities' },
@@ -39,40 +40,8 @@ const SORT_OPTIONS = [
   { value: 'title', label: 'Sort: Title A–Z' }
 ];
 
-function matchesCity(venue, selectedCity) {
-  const v = (venue || '').toLowerCase();
-  const c = selectedCity.toLowerCase();
-  if (c === 'bengaluru' || c === 'bangalore') {
-    return v.includes('bengaluru') || v.includes('bangalore');
-  }
-  return v.includes(c);
-}
-
-function matchesDateWindow(startsAt, windowKey) {
-  if (!windowKey || !startsAt) return true;
-  const eventTime = new Date(startsAt).getTime();
-  if (Number.isNaN(eventTime)) return true;
-  const now = new Date();
-  const nowMs = now.getTime();
-  if (windowKey === 'weekend') {
-    const day = now.getDay(); // 0 Sun .. 6 Sat
-    const daysUntilFriday = day <= 5 ? 5 - day : 6;
-    const weekendStart = new Date(now);
-    weekendStart.setDate(now.getDate() + (day === 0 || day === 6 ? 0 : daysUntilFriday));
-    weekendStart.setHours(0, 0, 0, 0);
-    const weekendEnd = new Date(weekendStart);
-    weekendEnd.setDate(weekendStart.getDate() + (day === 0 ? 1 : day === 6 ? 2 : 3));
-    weekendEnd.setHours(23, 59, 59, 999);
-    return eventTime >= nowMs && eventTime <= weekendEnd.getTime();
-  }
-  if (windowKey === 'month') {
-    const monthEnd = nowMs + 30 * 86400000;
-    return eventTime >= nowMs && eventTime <= monthEnd;
-  }
-  return true;
-}
-
 export default function EventsExplore() {
+  const { showToast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -98,30 +67,14 @@ export default function EventsExplore() {
     async function fetchEvents() {
       try {
         setLoading(true);
-        const params = {};
+        const params = { limit: 30 };
         if (searchKeyword) params.search = searchKeyword;
+        if (locationParam) params.location = locationParam;
+        if (dateParam) params.date = dateParam;
+        if (categoryParam) params.category = categoryParam;
 
         const res = await eventsApi.getPublicEvents(params);
-        let list = res.data?.events || [];
-
-        if (locationParam) {
-          list = list.filter((e) => matchesCity(e.venue, locationParam));
-        }
-
-        if (dateParam) {
-          list = list.filter((e) => matchesDateWindow(e.startsAt, dateParam));
-        }
-
-        if (categoryParam) {
-          list = list.filter(
-            (e) =>
-              (e.title || '').toLowerCase().includes(categoryParam.toLowerCase()) ||
-              (e.description || '').toLowerCase().includes(categoryParam.toLowerCase()) ||
-              (e.categoryLabel || '').toLowerCase().includes(categoryParam.toLowerCase())
-          );
-        }
-
-        setEvents(list);
+        setEvents(res.data?.events || []);
       } catch {
         setEvents([]);
       } finally {
@@ -162,6 +115,7 @@ export default function EventsExplore() {
     setCategoryFilter('');
     setSortBy('soonest');
     setSearchParams({});
+    showToast('Filters reset', 'info');
   };
 
   const hasActiveFilters = !!(searchKeyword || locationParam || dateParam || categoryParam);
@@ -281,15 +235,21 @@ export default function EventsExplore() {
 
       {/* Events Grid */}
       {loading ? (
-        <LoadingSpinner theme="dark" text="Searching live events..." />
+        <LoadingSpinner text="Searching live events..." />
       ) : sortedEvents.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
+        <div
+          key={`${searchKeyword}-${locationParam}-${dateParam}-${categoryParam}-${sortBy}`}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 animate-swap-in"
+        >
           {sortedEvents.map((event) => (
             <EventCard key={event._id || event.id} event={event} variant="dark-grid" />
           ))}
         </div>
       ) : (
-        <div className="text-center py-24 bg-[#0C1018]/78 backdrop-blur-xl rounded-2xl border border-white/[0.08] p-8 space-y-4 shadow-card">
+        <div
+          key="empty-events"
+          className="animate-swap-in text-center py-24 bg-[#0C1018]/78 backdrop-blur-xl rounded-2xl border border-white/[0.08] p-8 space-y-4 shadow-card"
+        >
           <div className="w-16 h-16 rounded-full bg-[#FF4D2D]/15 border border-[#FF4D2D]/30 text-[#FF4D2D] flex items-center justify-center mx-auto">
             <Search className="w-8 h-8" />
           </div>
